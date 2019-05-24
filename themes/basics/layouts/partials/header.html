@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-111999020-1"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'UA-111999020-1');
+        </script>
+
+        <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48 128x128 256x256" type="image/x-icon">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css">
+        <link
+            rel="stylesheet"
+            href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"
+            integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB"
+            crossorigin="anonymous">
+        <link href="https://fonts.googleapis.com/css?family=Ubuntu|Ubuntu+Mono" rel="stylesheet">
+
+        {{ if .IsPage }}
+          <title>{{.Site.Title }}: {{ .Title }}</title>
+        {{ else }}
+          <title>{{.Site.Title}}</title>
+        {{ end }}
+
+        <link rel="stylesheet" href="/css/stylesheet.css">
+        <link rel="stylesheet" href="/css/syntax.css">
+    </head>
+    <body>
+      <div class="container main">
+        <div class="row">
+          <div class="scard col-sm-2 categories">
+              {{ $taxo := "tags" }} <!-- Use the plural form here -->
+              <ul id="{{ $taxo }}">
+                  {{ range .Param $taxo }}
+                      {{ $name := . }}
+                      {{ with $.Site.GetPage (printf "/%s/%s" $taxo ($name | urlize)) }}
+                          <li><a href="{{ .Permalink }}">{{ $name }}</a></li>
+                      {{ end }}
+                  {{ end }}
+              </ul>
+          </div>
+          <div class="scard content col-sm-8">
+            <nav class="navbar navbar-expand-md navbar-light">
+              <span class="navbar-brand mb-0 h1"></span>
+
+              <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle Navigation" name="button">
+                <span class="navbar-toggler-icon"></span>
+              </button>
+
+              <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <div class="navbar-nav">
+                  <a class="nav-item nav-link {{ if eq .URL "/"}}active{{ end }}" href="/">Home</a>
+                  {{ with .Site.Params.github }}<a class="nav-item nav-link" href="https://github.com/{{ . }}" target="_blank">GitHub</a>{{ end }}
+                  {{ with .Site.Params.gitlab }}<a class="nav-item nav-link" href="https://gitlab.com/{{ . }}" target="_blank">GitLab</a>{{ end }}
+                  <a class="nav-item nav-link {{ if eq .URL "/about/"}}active{{ end }}" href="/about/">About</a>
+                  <!--
+                  <a class="nav-item nav-link {{ if eq .URL "/resume/"}}active{{ end }}" href="/resume/">Resume</a>
+                  -->
+                </div>
+              </div>
+            </nav>
+
+            <section id="page-title">
+              <h1><a href="/">{{ .Site.Title }}: <span class="subtitle">{{ .Site.Params.SubTitle }}</span></a></h1>
+              <div id="author-name">
+                <h6><a href="/about/">{{ .Site.Params.Author }}</a></h6>
+              </div>
+            </section>
