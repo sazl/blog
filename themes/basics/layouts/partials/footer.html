@@ -6,7 +6,21 @@
         </div>
 
         <div class="scard col-sm-2">
+          {{ $taxo := "tags" }}
+          {{ with .Param $taxo }}
+          <div class="categories align-middle">
+              <h4 class="categories-title">Categories</h4>
+              <ul>
+                  {{ range . }}
+                      {{ $name := . }}
+                      {{ with $.Site.GetPage (printf "/%s/%s" $taxo ($name | urlize)) }}
+                          <li><a href="{{ .Permalink }}">{{ $name }}</a></li>
+                      {{ end }}
+                  {{ end }}
+              </ul>
+          </div>
         </div>
+        {{ end }}
       </div>
     </div>
 
