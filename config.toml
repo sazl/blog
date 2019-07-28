@@ -21,4 +21,4 @@ pygmentsCodeFences = true
 [params]
     author = "Sami Zeinelabdin"
     github = "sazl"
-    SubTitle = "Often incomplete"
+    SubTitle = ""

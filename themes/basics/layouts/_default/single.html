@@ -2,7 +2,22 @@
 <div class="blog-post">
   <h1>{{ .Title }}</h1>
   <div class="blog-post-subheader">
-    <time>{{ .Date.Format "02 Jan 2006" }}</time>
+    <div class="fl w-100 blog-post-time">
+      <time>{{ .Date.Format "02 Jan 2006" }}</time>
+    </div>
+    <div class="fl w-100">
+      {{ $taxo := "tags" }}
+      {{ with .Param $taxo }}
+        <ul class="categories flex">
+          {{ range . }}
+            {{ $name := . }}
+            {{ with $.Site.GetPage (printf "/%s/%s" $taxo ($name | urlize)) }}
+              <li class="category fl w-5"><a href="{{ .Permalink }}">{{ $name }}</a></li>
+            {{ end }}
+          {{ end }}
+        </ul>
+      {{ end }}
+    </div>
   </div>
   <div class="blog-post-content">
     {{ .Content }}
