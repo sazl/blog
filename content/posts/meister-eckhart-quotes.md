@@ -5,19 +5,23 @@ tags: [mysticism, eckhart]
 ---
 
 Though I'm not religious, I love the apophatic tradition and especially love reading Eckhart's works.
+
 Blessed are those who preach of the ineffable.
+
 Some of my favourite Meister Eckhart quotes:
 
-> “One must not always think so much about what one should do, but rather what one should be. Our works do not ennoble us; but we must ennoble our works.”
+> One must not always think so much about what one should do, but rather what one should be. Our works do not ennoble us; but we must ennoble our works.
 
-> “If the only prayer you ever say in your whole life is "thank you," it will be enough.”
+> Be willing to be a beginner every single morning.
 
-> “Only the hand that erases can write the true thing.”
+> If the only prayer you ever say in your whole life is "thank you," it will be enough.
 
-> “Truth is something so noble that if God could turn aside from it, I could keep the truth and let God go.”
+> Only the hand that erases can write the true thing.
 
-> “Even now one rarely hear of people achieving great things unless they first stumble in some respect.”
+> Truth is something so noble that if God could turn aside from it, I could keep the truth and let God go.
 
-> “For the person who has learned to let go and let be, nothing can ever get in the way again.”
+> Even now one rarely hear of people achieving great things unless they first stumble in some respect.
+
+> For the person who has learned to let go and let be, nothing can ever get in the way again.
 
 (sources): goodreads, wikiquote

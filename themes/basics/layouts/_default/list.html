@@ -1,7 +1,9 @@
 {{ define "content" }}
 <section>
   <ul class="posts_listing">
-    {{ range where .Pages.ByDate.Reverse "Section" "posts" }}
+    {{ $paginator := .Paginate (where .Pages.ByDate.Reverse "Section" "posts") 35 }}
+    {{ template "_internal/pagination.html" . }}
+    {{ range $paginator.Pages }}
     <li class="post_item">
       <a href="{{ .Permalink }}">
         <div class="row col-sm-12 post_content">
