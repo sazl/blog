@@ -1,7 +1,6 @@
 ---
 title: "Learning ATS"
 date: 2019-02-17T16:58:46-05:00
-draft: true
 ---
 
 # Resources
