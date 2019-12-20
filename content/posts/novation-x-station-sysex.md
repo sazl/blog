@@ -1,7 +1,7 @@
 ---
 title: "Novation X-Station SYSEX"
 date: 2019-11-30T10:12:47-05:00
-tags: [synth, midi]
+tags: [synth, midi, music]
 ---
 
 Figuring out X-Station's SYSEX format.
