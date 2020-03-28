@@ -2,6 +2,7 @@
 title: "Meister Eckhart Quotes"
 date: 2019-11-30T15:08:38-05:00
 tags: [mysticism, eckhart]
+draft: true
 ---
 
 Though I'm not religious, I love the apophatic tradition and especially love reading Eckhart's works.
