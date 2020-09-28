@@ -17,7 +17,7 @@ imaging:
 params:
   description: sazl.ca
   homeMetaContent: Sami Zeinelabdin
-  footer: Made with [Hugo](https://gohugo.io/). Themed by [Cupper](https://github.com/zwbetz-gh/cupper-hugo-theme). Deployed to [Netlify](https://www.netlify.com/).
+  footer: sazl
   dateFormat: Jan 2, 2006
   codePenUser: sazl
   katex: true
