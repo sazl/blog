@@ -1,6 +1,7 @@
 ---
 title: "Left Resources"
 date: 2018-12-15T23:33:42-05:00
+draft: true
 tags: [politics, resources, podcasts, youtube]
 ---
 
