@@ -37,6 +37,9 @@ params:
       - name: instagram
         handle: optimaltree
         url: https://www.instagram.com/optimaltree
+      - name: reddit
+        handle: quackzone
+        url: https://www.reddit.com/user/quackzone
 
 menu:
   nav:
