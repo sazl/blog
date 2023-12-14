@@ -7,8 +7,6 @@ hugo
 
 cd public
 
-echo "sazl.ca" >> CNAME
-
 git add .
 
 msg="rebuilding site `date`"

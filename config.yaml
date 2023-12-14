@@ -10,7 +10,7 @@ summaryLength: 70 # number of words for article summaries
 menu:
   main:
     - name: "About"
-      url: "about/"
+      url: "about/index.html"
       weight: 20
   icons:
     - identifier: "github"
