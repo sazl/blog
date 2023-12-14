@@ -7,6 +7,12 @@ enableGitInfo: true
 paginate: 5 # number of articles per page in the index
 summaryLength: 70 # number of words for article summaries
 
+markup:
+  tableOfContents:
+    endLevel: 5
+    ordered: false
+    startLevel: 1
+
 menu:
   main:
     - name: "About"
@@ -104,7 +110,7 @@ params:
   # this requires you to set baseURL (see above)
   forceRedirect: true
   infiniteScrolling: false # activates infinite scrolling instead of regular pagination
-  enableFooterColumns: false # activates footer columns, as described below
+  enableFooterColumns: true # activates footer columns, as described below
   enableJumbotron: false # enables jumbotron, as described below
   # related articles will be selected randomly based on tags and shown at
   # the bottom of the article, after the comments
