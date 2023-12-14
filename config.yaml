@@ -2,87 +2,112 @@ baseURL: https://sazl.ca
 languageCode: en-us
 defaultContentLanguage: en
 title: sazl
-theme: cupper-hugo-theme
+theme: hugo-ficurinia
 enableGitInfo: true
+paginate: 5 # number of articles per page in the index
+summaryLength: 70 # number of words for article summaries
 
-module:
-  imports:
-  - path: github.com/theNewDynamic/hugo-module-tnd-socials
-
-taxonomies:
-  tag: tags
-
-permalinks:
-  post: /:filename/
-
-imaging:
-  quality: 99
+menu:
+  main:
+    - name: "About"
+      url: "about/"
+      weight: 20
+  icons:
+    - identifier: "github"
+      name: "Github"
+      url: "https://github.com/sazl"
+      weight: 20
+    - identifier: "twitter"
+      name: "Twitter"
+      url: "https://twitter.com/optimaltree"
+      weight: 20
+    - identifier: "mastodon"
+      name: "Mastodon"
+      url: "https://mstdn.social/@optimaltree"
+      weight: 20
 
 params:
+  posts: "posts"
   description: sazl.ca
   homeMetaContent: Sami Zeinelabdin
   footer: sazl
-  dateFormat: Jan 2, 2006
+  dateformShort: Jan 2, 2006
   codePenUser: sazl
   katex: true
+  footerHtml: "Test"
+  justifyContent: false
+  relatedPosts: true
+  code_copy_button: true
+  homeSubtitlePrinter: true
+  scrollToTop: true
+  global_mathjax: false
+  readTime: true
+  shareSocial: true
 
-  tnd_socials:
-      services:
-      - name: github
-        handle: sazl
-      - name: twitter
-        handle: optimaltree
-        url: https://www.twitter.com/optimaltree
-        icon: twitter
-      - name: instagram
-        handle: optimaltree
-        url: https://www.instagram.com/optimaltree
+  showPostsLink: true # show or hide the link to the simple post list
+  extraContentDirs: [] # other content directories to render similarly to the home page
+  showcaseDir: "showcase" # create a content directory that shows a special showcase section in the home page
 
-menu:
-  nav:
-    - name: Home
-      url: /
-      weight: 1
-    - name: Blog
-      url: /post/
-      weight: 2
-    - name: Tags
-      url: /tags/
-      weight: 3
-    - name: About
-      url: /about/
-      weight: 4
-    - name: RSS
-      url: /index.xml
-      weight: 5
+  # shows a specified single page as a home page, instead of the traditional articles list
+  # requires setting `homeSinglePage`
+  # goes well with extraContentDirs
+  showSinglePageAsHome: false
+  homeSinglePage: "/home"
 
-markup:
-  defaultMarkdownHandler: goldmark
-  goldmark:
-    extensions:
-      definitionList: true
-      footnote: true
-      linkify: true
-      strikethrough: true
-      table: true
-      taskList: true
-      typographer: true
-    parser:
-      attribute: true
-      autoHeadingID: true
-    renderer:
-      hardWraps: false
-      unsafe: true
-      xHTML: false
-  highlight:
-    codeFences: false
-    hl_Lines: ""
-    lineNoStart: 1
-    lineNos: false
-    lineNumbersInTable: true
-    noClasses: true
-    style: monokai
-    tabWidth: 4
-  tableOfContents:
-    endLevel: 6
-    startLevel: 2
+  # It's best to put these icons in the "static" folder of your site
+  logo: "/logo.png"
+  favicon: "/favicon-32x32.png" # 32x32
+  # faviconIco: "/favicon.ico"  # 32x32
+  # appletouch: "/apple-touch-icon.png"  # 180x180
+  # svgicon: "/logo.svg"
+  # icon512: "/icon512.png"  # 512x512 png image
+
+  logoRightOfTitle: false # positions the logo to the right of the title; default: false
+
+  showTags: true # show the Tags menu item; default true
+  showRss: true # show the link for the RSS feed; default true
+
+  imageInArticlePreview: true # show images in article preview; default false
+  fitImageInArticlePreview: false # make article preview images fit the article preview instead of getting cropped
+  articleSummary: false # show a summary in article preview; default true
+
+  fontFamily: "JetBrains Mono" # changes the font, default "JetBrains Mono"
+  titleFontFamily: "JetBrains Mono" # font used for titles and headings
+  monospaceFontFamily: "JetBrains Mono" # changes the monospace font for code, default "JetBrains Mono"
+
+  # multipliers applied to font sizes, useful for custom fonts that may be too big or too small
+  titleFontSizeMultiplier: 1.0
+  mainFontSizeMultiplier: 1.0
+  monoFontSizeMultiplier: 1.35
+  contentWidth: "1000px" # maximum width of the site content, css syntax
+  paperCards: true # enable paper card style; default false
+  buttonTags: true # enable button tag style; default false
+  tagsInArticlePreview: true # enable tags list in the article preview card
+  gridView: false # show post list as a grid. goes well with paperCards
+  bigArticleTitle: false # makes the title in the single article view bigger
+  navtype: "standard" # changes the style of the pagination, available styles are: "standard", "circles"
+  enableShadow: true # shows a shadow around some elements
+  menuStyle: "standard" # changes the style of the main site navigation menu, available styles are: "standard", "buttons"
+  inputStyle: "standard" # changes the style of inputs (like the searchbar), available styles are: "standard", "buttons"
+  enableSearch: true # enable search page
+  searchbarEverywhere: true # if the searchbar should be shown in every page; requires enableSearch
+  searchMenuLink: true # add a search link to the navigation menu; requires enableSearch
+  mobileHamburgerNav: true # alternative hamburger menu layout for the main nav menu when screen is small
+  enableFeatured: false # enable a particular view for articles marked as featured (featured: true in the article frontmatter)
+  underlineTitleLinks: true # show an underline also for links that are titles
+  tocBeforeImage: true # show the table of contents before the main article image; default false
+  enableSidebarLayout: false
+  tocInSidebar: false # if the sidebar is enbabled, show the TOC in the sidebar
+  # redirect to baseURL if current URL host doesn't match
+  # useful if deploying in gitlab pages with custom domain and don't want
+  # the username.gitlab.io/website url to persist
+  # this requires you to set baseURL (see above)
+  forceRedirect: true
+  infiniteScrolling: false # activates infinite scrolling instead of regular pagination
+  enableFooterColumns: false # activates footer columns, as described below
+  enableJumbotron: false # enables jumbotron, as described below
+  # related articles will be selected randomly based on tags and shown at
+  # the bottom of the article, after the comments
+  enableRelatedArticles: false
+  relatedArticlesNum: 2 # how many related articles to show
+  randomRelated: false # sorts related articles in random order (randomized at built time)
