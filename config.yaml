@@ -16,7 +16,7 @@ markup:
 menu:
   main:
     - name: "About"
-      url: "about/index.html"
+      url: "/about/index.html"
       weight: 20
   icons:
     - identifier: "github"
