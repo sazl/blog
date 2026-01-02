@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Integration Guide - DSonic</title>
+  <link rel="icon" type="image/svg+xml" href="/dsonic/assets/favicon-CDNk96qj.svg">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    .site-nav {
+      background: #151515;
+      border-bottom: 1px solid #333;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      color: #00ff88;
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+    }
+    .nav-links { display: flex; gap: 25px; }
+    .nav-links a {
+      color: #888;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active { color: #00ff88; }
+
+    /* Page layout with sidebar */
+    .page-layout {
+      display: flex;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Sidebar TOC */
+    .sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      padding: 30px 20px;
+      border-right: 1px solid #222;
+      height: calc(100vh - 60px);
+      position: sticky;
+      top: 60px;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      color: #00ff88;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0 0 15px 0;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #333;
+    }
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 12px;
+      color: #888;
+      text-decoration: none;
+      font-size: 0.85rem;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .sidebar-nav a:hover {
+      background: #1a1a1a;
+      color: #00ff88;
+    }
+    .sidebar-nav a.active {
+      background: rgba(0, 255, 136, 0.1);
+      color: #00ff88;
+    }
+    .sidebar-nav .section-divider {
+      height: 1px;
+      background: #333;
+      margin: 10px 0;
+    }
+
+    /* Main content */
+    .main-content {
+      flex: 1;
+      min-width: 0;
+      padding: 40px;
+    }
+    h1 { color: #00ff88; margin-bottom: 10px; font-size: 2.5rem; }
+    .subtitle { color: #666; margin-bottom: 40px; font-size: 1rem; }
+
+    /* Section styling */
+    .section {
+      margin-bottom: 60px;
+      scroll-margin-top: 80px;
+    }
+    .section h2 {
+      color: #00ff88;
+      font-size: 1.5rem;
+      margin: 0 0 20px 0;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #333;
+    }
+    .section h3 {
+      color: #fff;
+      font-size: 1.2rem;
+      margin: 30px 0 15px 0;
+    }
+    .section h4 {
+      color: #aaa;
+      font-size: 1rem;
+      margin: 20px 0 10px 0;
+    }
+    .section p {
+      color: #aaa;
+      margin: 15px 0;
+    }
+    .section ul, .section ol {
+      color: #aaa;
+      margin: 15px 0;
+      padding-left: 25px;
+    }
+    .section li {
+      margin: 8px 0;
+    }
+    .section a {
+      color: #00ff88;
+      text-decoration: none;
+    }
+    .section a:hover {
+      text-decoration: underline;
+    }
+
+    /* Code blocks */
+    pre {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 20px;
+      overflow-x: auto;
+      margin: 15px 0;
+    }
+    pre code {
+      color: #e0e0e0;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    code {
+      background: #1a1a1a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.9em;
+      color: #00ff88;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      color: #e0e0e0;
+    }
+
+    /* Syntax highlighting */
+    .comment { color: #666; }
+    .keyword { color: #ff79c6; }
+    .string { color: #f1fa8c; }
+    .function { color: #8be9fd; }
+    .number { color: #bd93f9; }
+
+    /* Info boxes */
+    .info-box {
+      background: rgba(0, 255, 136, 0.05);
+      border: 1px solid rgba(0, 255, 136, 0.2);
+      border-radius: 8px;
+      padding: 15px 20px;
+      margin: 20px 0;
+    }
+    .info-box.warning {
+      background: rgba(255, 170, 0, 0.05);
+      border-color: rgba(255, 170, 0, 0.3);
+    }
+    .info-box.warning strong {
+      color: #ffaa00;
+    }
+    .info-box strong {
+      color: #00ff88;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #333;
+    }
+    th {
+      color: #00ff88;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    td {
+      color: #aaa;
+    }
+    td code {
+      color: #00ff88;
+    }
+
+    /* Method cards */
+    .method-card {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .method-card h4 {
+      color: #00ff88;
+      margin: 0 0 10px 0;
+    }
+    .method-card .difficulty {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      margin-left: 10px;
+    }
+    .method-card .difficulty.easy {
+      background: rgba(0, 255, 136, 0.2);
+      color: #00ff88;
+    }
+    .method-card .difficulty.medium {
+      background: rgba(255, 170, 0, 0.2);
+      color: #ffaa00;
+    }
+    .method-card .difficulty.advanced {
+      background: rgba(136, 136, 255, 0.2);
+      color: #8888ff;
+    }
+
+    /* Responsive: hide sidebar on mobile */
+    @media (max-width: 900px) {
+      .page-layout { flex-direction: column; }
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        border-right: none;
+        border-bottom: 1px solid #222;
+        padding: 20px;
+      }
+      .sidebar-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .sidebar-nav a {
+        padding: 6px 12px;
+        background: #1a1a1a;
+        border: 1px solid #333;
+      }
+      .sidebar-nav .section-divider {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="site-nav">
+    <a href="../" class="logo">
+      <svg class="logo-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#00ffaa"/>
+            <stop offset="50%" style="stop-color:#00ff88"/>
+            <stop offset="100%" style="stop-color:#00cc66"/>
+          </linearGradient>
+          <linearGradient id="drumBody" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#1a1a2e"/>
+            <stop offset="100%" style="stop-color:#0a0a14"/>
+          </linearGradient>
+          <filter id="glow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="waveGlow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <circle cx="24" cy="24" r="22" fill="#0a0a0a"/>
+        <circle cx="24" cy="24" r="22" fill="none" stroke="url(#logoGrad)" stroke-width="1.5" opacity="0.8"/>
+        <circle cx="24" cy="24" r="20" fill="none" stroke="#00ff88" stroke-width="0.5" opacity="0.3"/>
+        <path d="M10 16 L10 32 Q24 38, 38 32 L38 16 Q24 22, 10 16" fill="url(#drumBody)" opacity="0.6"/>
+        <g filter="url(#glow)">
+          <line x1="10" y1="16" x2="10" y2="32" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="38" y1="16" x2="38" y2="32" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="14" y1="17" x2="14" y2="31" stroke="#00ff88" stroke-width="0.8" opacity="0.5"/>
+          <line x1="19" y1="18" x2="19" y2="30" stroke="#00ff88" stroke-width="0.8" opacity="0.4"/>
+          <line x1="29" y1="18" x2="29" y2="30" stroke="#00ff88" stroke-width="0.8" opacity="0.4"/>
+          <line x1="34" y1="17" x2="34" y2="31" stroke="#00ff88" stroke-width="0.8" opacity="0.5"/>
+        </g>
+        <g filter="url(#glow)">
+          <ellipse cx="24" cy="16" rx="14" ry="5" fill="none" stroke="url(#logoGrad)" stroke-width="2"/>
+          <ellipse cx="24" cy="16" rx="10" ry="3.5" fill="none" stroke="#00ff88" stroke-width="0.6" opacity="0.4"/>
+          <ellipse cx="24" cy="16" rx="6" ry="2" fill="none" stroke="#00ff88" stroke-width="0.4" opacity="0.3"/>
+        </g>
+        <g filter="url(#glow)"><ellipse cx="24" cy="32" rx="14" ry="5" fill="none" stroke="url(#logoGrad)" stroke-width="2"/></g>
+        <g filter="url(#waveGlow)">
+          <path d="M24 10 Q26 7, 24 4" fill="none" stroke="#00ffaa" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M24 10 Q22 7, 24 4" fill="none" stroke="#00ffaa" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M18 11 Q15 7, 17 3" fill="none" stroke="#00ff88" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+          <path d="M13 13 Q9 9, 12 5" fill="none" stroke="#00ff88" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+          <path d="M30 11 Q33 7, 31 3" fill="none" stroke="#00ff88" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+          <path d="M35 13 Q39 9, 36 5" fill="none" stroke="#00ff88" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+        </g>
+        <g filter="url(#glow)" opacity="0.7">
+          <rect x="15" y="38" width="2" height="4" rx="1" fill="#00ff88"/>
+          <rect x="19" y="36" width="2" height="6" rx="1" fill="#00ff88"/>
+          <rect x="23" y="37" width="2" height="5" rx="1" fill="#00ffaa"/>
+          <rect x="27" y="35" width="2" height="7" rx="1" fill="#00ff88"/>
+          <rect x="31" y="38" width="2" height="4" rx="1" fill="#00ff88"/>
+        </g>
+        <g stroke="#00ff88" stroke-width="0.5" opacity="0.3">
+          <path d="M6 24 L3 24" stroke-linecap="round"/><circle cx="3" cy="24" r="1" fill="#00ff88"/>
+          <path d="M42 24 L45 24" stroke-linecap="round"/><circle cx="45" cy="24" r="1" fill="#00ff88"/>
+        </g>
+      </svg>
+      DSonic
+    </a>
+    <div class="nav-links">
+      <a href="../">Overview</a>
+      <a href="../engines/">Engines</a>
+      <a href="../reference/">Reference</a>
+      <a href="./" class="active">Integration</a>
+      <a href="../studio/">Studio</a>
+    </div>
+  </nav>
+
+  <div class="page-layout">
+    <aside class="sidebar">
+      <h2>Integration Guide</h2>
+      <nav class="sidebar-nav">
+        <a href="#overview">Overview</a>
+        <a href="#prerequisites">Prerequisites</a>
+        <div class="section-divider"></div>
+        <a href="#strudel-cdn">Strudel: CDN Script</a>
+        <a href="#strudel-npm">Strudel: npm Package</a>
+        <a href="#strudel-repl">Strudel: REPL Component</a>
+        <a href="#strudel-patterns">Pattern Examples</a>
+        <div class="section-divider"></div>
+        <a href="#standalone-setup">Standalone: Setup</a>
+        <a href="#standalone-api">Standalone: API</a>
+        <a href="#standalone-engines">Standalone: Engines</a>
+        <div class="section-divider"></div>
+        <a href="#configuration">Configuration</a>
+        <a href="#troubleshooting">Troubleshooting</a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <h1>Integration Guide</h1>
+      <p class="subtitle">Complete guide to using DSonic in your projects</p>
+
+      <!-- Overview -->
+      <section id="overview" class="section">
+        <h2>Overview</h2>
+        <p>DSonic is a Web Audio drum synthesizer with two primary use cases:</p>
+        <ol>
+          <li><strong>Strudel Integration</strong> - Use DSonic as a sound source in Strudel live-coding patterns</li>
+          <li><strong>Standalone Usage</strong> - Use DSonic directly in any web application via the Web Audio API</li>
+        </ol>
+
+        <div class="info-box">
+          <strong>License Note:</strong> DSonic is MIT licensed. When integrating with Strudel (AGPL-3.0),
+          the Strudel license terms apply to the combined work if you distribute it.
+        </div>
+
+        <h3>Architecture</h3>
+        <p>DSonic provides two synthesis systems:</p>
+        <table>
+          <tr>
+            <th>System</th>
+            <th>Description</th>
+            <th>Sound Names</th>
+          </tr>
+          <tr>
+            <td>Voice-based</td>
+            <td>Two-layer (oscillator + noise) with waveguide resonator</td>
+            <td><code>dsonic</code>, <code>dsonic_kick</code>, <code>dsonic_snare</code>, etc.</td>
+          </tr>
+          <tr>
+            <td>Engine-based</td>
+            <td>12 specialized algorithms optimized for specific drum types</td>
+            <td><code>dsonic_akick</code>, <code>dsonic_hsnare</code>, <code>dsonic_fmperc</code>, etc.</td>
+          </tr>
+        </table>
+      </section>
+
+      <!-- Prerequisites -->
+      <section id="prerequisites" class="section">
+        <h2>Prerequisites</h2>
+
+        <h3>For Strudel Integration</h3>
+        <ul>
+          <li>Familiarity with Strudel pattern syntax (<a href="https://strudel.cc/learn/" target="_blank">strudel.cc/learn</a>)</li>
+          <li>Understanding of Strudel's audio architecture</li>
+          <li>Modern browser with Web Audio API support</li>
+        </ul>
+
+        <h3>For Standalone Usage</h3>
+        <ul>
+          <li>Node.js 18+ and npm (for npm installation)</li>
+          <li>ES modules-compatible bundler (Vite, webpack, esbuild, etc.)</li>
+          <li>Basic understanding of Web Audio API concepts (AudioContext, AudioNode)</li>
+          <li>TypeScript support recommended (types are included)</li>
+        </ul>
+      </section>
+
+      <!-- Strudel: CDN Script -->
+      <section id="strudel-cdn" class="section">
+        <h2>Strudel Integration: CDN Script</h2>
+
+        <div class="method-card">
+          <h4>CDN Script Tag <span class="difficulty easy">Easy</span></h4>
+          <p>Load DSonic directly in the browser without a build step. Best for quick prototyping.</p>
+        </div>
+
+        <h3>Basic Setup</h3>
+        <p>Add DSonic after Strudel's scripts in your HTML:</p>
+
+<pre><code><span class="comment">&lt;!-- Load Strudel REPL --&gt;</span>
+&lt;script src="https://unpkg.com/@strudel/repl@latest"&gt;&lt;/script&gt;
+
+<span class="comment">&lt;!-- Load DSonic --&gt;</span>
+&lt;script type="module"&gt;
+  <span class="keyword">import</span> { registerDSonic } <span class="keyword">from</span> <span class="string">'https://unpkg.com/dsonic@latest/dist/dsonic.js'</span>;
+
+  <span class="comment">// Wait for Strudel to initialize, then register DSonic</span>
+  <span class="function">setTimeout</span>(() =&gt; {
+    <span class="function">registerDSonic</span>();
+  }, <span class="number">1000</span>);
+&lt;/script&gt;
+
+<span class="comment">&lt;!-- Strudel editor component --&gt;</span>
+&lt;strudel-editor&gt;
+s("dsonic_kick").freq(55).decay(0.3)
+&lt;/strudel-editor&gt;</code></pre>
+
+        <h3>Complete Example</h3>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;DSonic + Strudel&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;script src="https://unpkg.com/@strudel/repl@latest"&gt;&lt;/script&gt;
+
+  &lt;strudel-editor id="editor"&gt;
+// DSonic drum pattern
+stack(
+  s("dsonic_akick").freq(50).decay(0.4),
+  s("dsonic_hsnare").struct("~ x").decay(0.15),
+  s("dsonic_hhat*4").decay(0.05)
+)
+  &lt;/strudel-editor&gt;
+
+  &lt;script type="module"&gt;
+    <span class="keyword">import</span> { registerDSonic } <span class="keyword">from</span> <span class="string">'https://unpkg.com/dsonic@latest/dist/dsonic.js'</span>;
+
+    <span class="comment">// Poll for Strudel's registerSound function</span>
+    <span class="keyword">const</span> waitForStrudel = () =&gt; {
+      <span class="keyword">if</span> (<span class="keyword">typeof</span> registerSound === <span class="string">'function'</span>) {
+        <span class="function">registerDSonic</span>();
+        console.<span class="function">log</span>(<span class="string">'DSonic ready!'</span>);
+      } <span class="keyword">else</span> {
+        <span class="function">setTimeout</span>(waitForStrudel, <span class="number">100</span>);
+      }
+    };
+    <span class="function">waitForStrudel</span>();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+        <div class="info-box warning">
+          <strong>Version Pinning:</strong> For production, pin DSonic to a specific version
+          (e.g., <code>dsonic@0.1.0</code>) to prevent breaking changes.
+        </div>
+      </section>
+
+      <!-- Strudel: npm Package -->
+      <section id="strudel-npm" class="section">
+        <h2>Strudel Integration: npm Package</h2>
+
+        <div class="method-card">
+          <h4>npm Installation <span class="difficulty medium">Intermediate</span></h4>
+          <p>Use with a bundler for optimal bundle size and type safety. Best for production applications.</p>
+        </div>
+
+        <h3>Installation</h3>
+<pre><code>npm install dsonic @strudel/core @strudel/webaudio</code></pre>
+
+        <h3>Project Structure</h3>
+<pre><code>my-project/
+├── index.html
+├── package.json
+├── vite.config.js
+└── src/
+    └── main.js</code></pre>
+
+        <h3>Vite Configuration</h3>
+<pre><code><span class="comment">// vite.config.js</span>
+<span class="keyword">import</span> { defineConfig } <span class="keyword">from</span> <span class="string">'vite'</span>;
+
+<span class="keyword">export default</span> <span class="function">defineConfig</span>({
+  <span class="comment">// Ensure ES modules are handled correctly</span>
+  build: {
+    target: <span class="string">'es2020'</span>,
+  },
+  optimizeDeps: {
+    include: [<span class="string">'dsonic'</span>, <span class="string">'@strudel/core'</span>, <span class="string">'@strudel/webaudio'</span>],
+  },
+});</code></pre>
+
+        <h3>Main Script</h3>
+<pre><code><span class="comment">// src/main.js</span>
+<span class="keyword">import</span> { registerDSonic } <span class="keyword">from</span> <span class="string">'dsonic'</span>;
+<span class="keyword">import</span> { repl } <span class="keyword">from</span> <span class="string">'@strudel/repl'</span>;
+
+<span class="comment">// Initialize Strudel REPL</span>
+<span class="keyword">const</span> editor = <span class="function">repl</span>({
+  id: <span class="string">'editor'</span>,
+  defaultOutput: <span class="string">'speakers'</span>,
+});
+
+<span class="comment">// Register DSonic after REPL initializes</span>
+editor.scheduler.on(<span class="string">'ready'</span>, () =&gt; {
+  <span class="function">registerDSonic</span>();
+});
+
+<span class="comment">// Set initial code</span>
+editor.<span class="function">setCode</span>(<span class="string">`
+stack(
+  s("dsonic_akick").freq(55).decay(0.35),
+  s("dsonic_hsnare").struct("~ x").decay(0.12),
+  s("dsonic_hhat*4").decay(0.05)
+)
+`</span>);</code></pre>
+
+        <h3>Selective Imports</h3>
+        <p>For smaller bundle size, import only what you need:</p>
+<pre><code><span class="comment">// Import only specific engines</span>
+<span class="keyword">import</span> {
+  AnalogKickEngine,
+  HybridSnareEngine,
+  createEngine
+} <span class="keyword">from</span> <span class="string">'dsonic'</span>;
+
+<span class="comment">// Or import just the registration function</span>
+<span class="keyword">import</span> { registerDSonic } <span class="keyword">from</span> <span class="string">'dsonic'</span>;</code></pre>
+      </section>
+
+      <!-- Strudel: REPL Component -->
+      <section id="strudel-repl" class="section">
+        <h2>Strudel Integration: Custom REPL</h2>
+
+        <div class="method-card">
+          <h4>Custom UI with @strudel/web <span class="difficulty advanced">Advanced</span></h4>
+          <p>Build your own interface without Strudel's default editor. Full control over the UI.</p>
+        </div>
+
+        <h3>Minimal Custom Player</h3>
+<pre><code><span class="keyword">import</span> {
+  getAudioContext,
+  initAudioOnFirstClick
+} <span class="keyword">from</span> <span class="string">'@strudel/webaudio'</span>;
+<span class="keyword">import</span> {
+  evaluate,
+  Scheduler
+} <span class="keyword">from</span> <span class="string">'@strudel/core'</span>;
+<span class="keyword">import</span> { registerDSonic } <span class="keyword">from</span> <span class="string">'dsonic'</span>;
+
+<span class="comment">// Initialize audio on user interaction</span>
+<span class="function">initAudioOnFirstClick</span>();
+
+<span class="comment">// Create scheduler</span>
+<span class="keyword">const</span> scheduler = <span class="keyword">new</span> <span class="function">Scheduler</span>({
+  <span class="function">getAudioContext</span>,
+  interval: <span class="number">0.05</span>,
+  ahead: <span class="number">0.15</span>,
+});
+
+<span class="comment">// Register DSonic sounds</span>
+<span class="function">registerDSonic</span>();
+
+<span class="comment">// Evaluate and play pattern</span>
+<span class="keyword">async function</span> <span class="function">playPattern</span>(code) {
+  <span class="keyword">const</span> { pattern } = <span class="keyword">await</span> <span class="function">evaluate</span>(code);
+  scheduler.<span class="function">setPattern</span>(pattern);
+  scheduler.<span class="function">start</span>();
+}
+
+<span class="comment">// Example usage</span>
+document.<span class="function">getElementById</span>(<span class="string">'play'</span>).<span class="function">onclick</span> = () =&gt; {
+  <span class="function">playPattern</span>(<span class="string">`s("dsonic_akick").freq(55)`</span>);
+};
+
+document.<span class="function">getElementById</span>(<span class="string">'stop'</span>).<span class="function">onclick</span> = () =&gt; {
+  scheduler.<span class="function">stop</span>();
+};</code></pre>
+
+        <h3>Adding Custom Parameters</h3>
+        <p>Extend Strudel's Pattern prototype with DSonic-specific methods:</p>
+<pre><code><span class="keyword">import</span> { Pattern } <span class="keyword">from</span> <span class="string">'@strudel/core'</span>;
+
+<span class="comment">// Add custom DSonic parameters to Pattern</span>
+<span class="keyword">const</span> dsonicParams = [
+  <span class="string">'bodyPitch'</span>, <span class="string">'pitchEnvAmount'</span>, <span class="string">'clickLevel'</span>,
+  <span class="string">'noiseAmt'</span>, <span class="string">'metalAmt'</span>, <span class="string">'modIndex'</span>
+];
+
+dsonicParams.<span class="function">forEach</span>(param =&gt; {
+  Pattern.prototype[param] = <span class="keyword">function</span>(value) {
+    <span class="keyword">return</span> <span class="keyword">this</span>.<span class="function">set</span>({ [param]: value });
+  };
+});</code></pre>
+      </section>
+
+      <!-- Strudel: Pattern Examples -->
+      <section id="strudel-patterns" class="section">
+        <h2>Strudel Pattern Examples</h2>
+
+        <h3>Basic Drum Kit</h3>
+<pre><code><span class="comment">// Four-on-the-floor pattern</span>
+<span class="function">stack</span>(
+  <span class="function">s</span>(<span class="string">"dsonic_akick"</span>).<span class="function">freq</span>(<span class="number">50</span>).<span class="function">decay</span>(<span class="number">0.35</span>),
+  <span class="function">s</span>(<span class="string">"dsonic_hsnare"</span>).<span class="function">struct</span>(<span class="string">"~ x"</span>).<span class="function">decay</span>(<span class="number">0.15</span>),
+  <span class="function">s</span>(<span class="string">"dsonic_hhat*4"</span>).<span class="function">decay</span>(<span class="number">0.05</span>),
+  <span class="function">s</span>(<span class="string">"dsonic_hclap"</span>).<span class="function">struct</span>(<span class="string">"~ ~ ~ x"</span>).<span class="function">decay</span>(<span class="number">0.2</span>)
+)</code></pre>
+
+        <h3>Parameter Modulation</h3>
+<pre><code><span class="comment">// Modulate kick pitch envelope over time</span>
+<span class="function">s</span>(<span class="string">"dsonic_akick"</span>)
+  .<span class="function">freq</span>(<span class="number">50</span>)
+  .<span class="function">pitchEnvAmount</span>(<span class="function">sine</span>().<span class="function">range</span>(<span class="number">12</span>, <span class="number">48</span>).<span class="function">slow</span>(<span class="number">8</span>))
+  .<span class="function">decay</span>(<span class="function">sine</span>().<span class="function">range</span>(<span class="number">0.2</span>, <span class="number">0.6</span>).<span class="function">slow</span>(<span class="number">4</span>))</code></pre>
+
+        <h3>Engine-Specific Patterns</h3>
+<pre><code><span class="comment">// Analog kick with drive</span>
+<span class="function">s</span>(<span class="string">"dsonic_akick"</span>)
+  .<span class="function">freq</span>(<span class="number">45</span>)
+  .<span class="function">penv</span>(<span class="number">36</span>)
+  .<span class="function">pdecay</span>(<span class="number">0.1</span>)
+  .<span class="function">drive</span>(<span class="number">0.3</span>)
+
+<span class="comment">// FM percussion bell</span>
+<span class="function">s</span>(<span class="string">"dsonic_fmperc*2"</span>)
+  .<span class="function">freq</span>(<span class="string">"200 400 300 600"</span>)
+  .<span class="function">mod</span>(<span class="number">8</span>)
+  .<span class="function">bright</span>(<span class="number">0.7</span>)
+  .<span class="function">decay</span>(<span class="number">0.5</span>)
+
+<span class="comment">// Karplus-Strong pluck</span>
+<span class="function">s</span>(<span class="string">"dsonic_karplus"</span>)
+  .<span class="function">freq</span>(<span class="string">"c3 e3 g3 c4"</span>)
+  .<span class="function">damp</span>(<span class="number">0.3</span>)
+  .<span class="function">twang</span>(<span class="number">0.6</span>)</code></pre>
+
+        <h3>Available Sound Names</h3>
+        <table>
+          <tr>
+            <th>Voice-based</th>
+            <th>Engine-based</th>
+          </tr>
+          <tr>
+            <td><code>dsonic</code></td>
+            <td><code>dsonic_akick</code></td>
+          </tr>
+          <tr>
+            <td><code>dsonic_kick</code></td>
+            <td><code>dsonic_membrane</code></td>
+          </tr>
+          <tr>
+            <td><code>dsonic_snare</code></td>
+            <td><code>dsonic_hsnare</code></td>
+          </tr>
+          <tr>
+            <td><code>dsonic_hihat</code></td>
+            <td><code>dsonic_hclap</code></td>
+          </tr>
+          <tr>
+            <td><code>dsonic_openhat</code></td>
+            <td><code>dsonic_hhat</code></td>
+          </tr>
+          <tr>
+            <td><code>dsonic_clap</code></td>
+            <td><code>dsonic_hcymbal</code></td>
+          </tr>
+          <tr>
+            <td><code>dsonic_tom</code></td>
+            <td><code>dsonic_htom</code></td>
+          </tr>
+          <tr>
+            <td><code>dsonic_ride</code></td>
+            <td><code>dsonic_hrim</code></td>
+          </tr>
+          <tr>
+            <td><code>dsonic_crash</code></td>
+            <td><code>dsonic_shaker</code></td>
+          </tr>
+          <tr>
+            <td><code>dsonic_rimshot</code></td>
+            <td><code>dsonic_karplus</code></td>
+          </tr>
+          <tr>
+            <td><code>dsonic_noise</code></td>
+            <td><code>dsonic_fmperc</code></td>
+          </tr>
+        </table>
+      </section>
+
+      <!-- Standalone: Setup -->
+      <section id="standalone-setup" class="section">
+        <h2>Standalone Usage: Setup</h2>
+
+        <p>Use DSonic directly without Strudel for custom applications, games, or any Web Audio project.</p>
+
+        <h3>npm Installation</h3>
+<pre><code>npm install dsonic</code></pre>
+
+        <h3>Project Setup with Vite</h3>
+<pre><code><span class="comment"># Create new project</span>
+npm create vite@latest my-drum-app -- --template vanilla-ts
+cd my-drum-app
+
+<span class="comment"># Install DSonic</span>
+npm install dsonic
+
+<span class="comment"># Start dev server</span>
+npm run dev</code></pre>
+
+        <h3>TypeScript Configuration</h3>
+        <p>DSonic includes TypeScript definitions. Ensure your <code>tsconfig.json</code> is configured:</p>
+<pre><code>{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true
+  }
+}</code></pre>
+
+        <h3>Basic HTML Template</h3>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;DSonic Standalone&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;button id="kick"&gt;Kick&lt;/button&gt;
+  &lt;button id="snare"&gt;Snare&lt;/button&gt;
+  &lt;button id="hat"&gt;Hat&lt;/button&gt;
+
+  &lt;script type="module" src="/src/main.ts"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+      </section>
+
+      <!-- Standalone: API -->
+      <section id="standalone-api" class="section">
+        <h2>Standalone Usage: API</h2>
+
+        <h3>DrumSynth (Voice-based)</h3>
+        <p>The <code>DrumSynth</code> class orchestrates voices with shared waveguide resonator:</p>
+<pre><code><span class="keyword">import</span> {
+  DrumSynth,
+  getTemplateParams,
+  setAudioContext
+} <span class="keyword">from</span> <span class="string">'dsonic'</span>;
+
+<span class="comment">// Create AudioContext (must be after user interaction)</span>
+<span class="keyword">const</span> audioContext = <span class="keyword">new</span> <span class="function">AudioContext</span>();
+<span class="function">setAudioContext</span>(audioContext);
+
+<span class="comment">// Create synth instance</span>
+<span class="keyword">const</span> synth = <span class="keyword">new</span> <span class="function">DrumSynth</span>(audioContext);
+
+<span class="comment">// Trigger a kick using template</span>
+<span class="keyword">const</span> kickParams = <span class="function">getTemplateParams</span>(<span class="string">'kick'</span>);
+<span class="keyword">const</span> { node, stop } = synth.<span class="function">trigger</span>(audioContext.currentTime, kickParams);
+
+<span class="comment">// Trigger with custom parameters</span>
+synth.<span class="function">trigger</span>(audioContext.currentTime, {
+  oscillator: {
+    frequency: <span class="number">55</span>,
+    waveform: <span class="string">'sine'</span>,
+    pitchEnvAmount: <span class="number">24</span>,
+    pitchEnvDecay: <span class="number">0.1</span>,
+  },
+  noise: {
+    level: <span class="number">0.2</span>,
+    type: <span class="string">'white'</span>,
+  },
+  envelope: {
+    attack: <span class="number">0.001</span>,
+    decay: <span class="number">0.3</span>,
+    sustain: <span class="number">0</span>,
+    release: <span class="number">0.1</span>,
+  },
+  effects: {
+    driveAmount: <span class="number">0.2</span>,
+  },
+});</code></pre>
+
+        <h3>DrumSynth Methods</h3>
+        <table>
+          <tr>
+            <th>Method</th>
+            <th>Description</th>
+          </tr>
+          <tr>
+            <td><code>trigger(time, params, baseParams?)</code></td>
+            <td>Trigger a voice with parameters. Returns <code>{ node, stop }</code></td>
+          </tr>
+          <tr>
+            <td><code>setMasterGain(gain)</code></td>
+            <td>Set master output level (0-1)</td>
+          </tr>
+          <tr>
+            <td><code>setWaveguide(params)</code></td>
+            <td>Configure shared waveguide resonator</td>
+          </tr>
+          <tr>
+            <td><code>stopAll()</code></td>
+            <td>Stop all playing voices immediately</td>
+          </tr>
+          <tr>
+            <td><code>getOutput()</code></td>
+            <td>Get the output AudioNode for routing</td>
+          </tr>
+        </table>
+
+        <h3>Available Templates</h3>
+<pre><code><span class="keyword">import</span> { getTemplateNames, getTemplateParams } <span class="keyword">from</span> <span class="string">'dsonic'</span>;
+
+<span class="comment">// List all templates</span>
+console.<span class="function">log</span>(<span class="function">getTemplateNames</span>());
+<span class="comment">// ['kick', 'kick808', 'kickPunchy', 'snare', 'snareTight', ...]</span>
+
+<span class="comment">// Get params for a template</span>
+<span class="keyword">const</span> params = <span class="function">getTemplateParams</span>(<span class="string">'kick808'</span>);
+console.<span class="function">log</span>(params.oscillator.frequency); <span class="comment">// 45</span></code></pre>
+
+        <h3>Custom Templates</h3>
+<pre><code><span class="keyword">import</span> { registerCustomTemplate, VoiceParams } <span class="keyword">from</span> <span class="string">'dsonic'</span>;
+
+<span class="keyword">const</span> myKick: VoiceParams = {
+  oscillator: {
+    frequency: <span class="number">50</span>,
+    waveform: <span class="string">'sine'</span>,
+    level: <span class="number">1</span>,
+    pitchEnvAmount: <span class="number">36</span>,
+    pitchEnvDecay: <span class="number">0.08</span>,
+  },
+  noise: { level: <span class="number">0.1</span>, type: <span class="string">'white'</span> },
+  envelope: {
+    attack: <span class="number">0.001</span>,
+    decay: <span class="number">0.4</span>,
+    sustain: <span class="number">0</span>,
+    release: <span class="number">0.1</span>,
+  },
+  effects: { driveAmount: <span class="number">0.2</span> },
+  outputLevel: <span class="number">0.8</span>,
+  pan: <span class="number">0</span>,
+};
+
+<span class="function">registerCustomTemplate</span>({
+  name: <span class="string">'myKick'</span>,
+  category: <span class="string">'kick'</span>,
+  description: <span class="string">'My custom 808 kick'</span>,
+  params: myKick,
+});</code></pre>
+      </section>
+
+      <!-- Standalone: Engines -->
+      <section id="standalone-engines" class="section">
+        <h2>Standalone Usage: Engines</h2>
+
+        <p>Engine-based synthesis provides 12 specialized drum algorithms:</p>
+
+        <h3>Using createEngine()</h3>
+<pre><code><span class="keyword">import</span> {
+  createEngine,
+  getAudioContext
+} <span class="keyword">from</span> <span class="string">'dsonic'</span>;
+
+<span class="keyword">const</span> ctx = <span class="function">getAudioContext</span>();
+
+<span class="comment">// Create an analog kick engine</span>
+<span class="keyword">const</span> kick = <span class="function">createEngine</span>(ctx, <span class="string">'analog_kick'</span>, {
+  bodyPitch: <span class="number">50</span>,
+  bodyDecay: <span class="number">0.35</span>,
+  pitchEnvAmount: <span class="number">36</span>,
+  pitchEnvDecay: <span class="number">0.08</span>,
+  clickLevel: <span class="number">0.3</span>,
+  driveAmt: <span class="number">0.2</span>,
+});
+
+<span class="comment">// Connect to destination</span>
+kick.<span class="function">getOutput</span>().<span class="function">connect</span>(ctx.destination);
+
+<span class="comment">// Trigger the sound</span>
+<span class="keyword">const</span> { stop } = kick.<span class="function">trigger</span>(ctx.currentTime);
+
+<span class="comment">// Clean up after sound finishes</span>
+<span class="function">setTimeout</span>(() =&gt; kick.<span class="function">dispose</span>(), <span class="number">1000</span>);</code></pre>
+
+        <h3>Engine Types</h3>
+        <table>
+          <tr>
+            <th>Type</th>
+            <th>Class</th>
+            <th>Use Case</th>
+          </tr>
+          <tr>
+            <td><code>'analog_kick'</code></td>
+            <td>AnalogKickEngine</td>
+            <td>808/909-style kicks with pitch sweep</td>
+          </tr>
+          <tr>
+            <td><code>'membrane'</code></td>
+            <td>DualMembraneEngine</td>
+            <td>Physical snare with coupled membranes</td>
+          </tr>
+          <tr>
+            <td><code>'hybrid_snare'</code></td>
+            <td>HybridSnareEngine</td>
+            <td>Analog body + noise snare</td>
+          </tr>
+          <tr>
+            <td><code>'clap'</code></td>
+            <td>ClapEngine</td>
+            <td>Multi-hit handclaps</td>
+          </tr>
+          <tr>
+            <td><code>'hat'</code></td>
+            <td>HatEngine</td>
+            <td>Metallic hi-hats (closed/open)</td>
+          </tr>
+          <tr>
+            <td><code>'cymbal'</code></td>
+            <td>CymbalEngine</td>
+            <td>Crashes, rides, chinas</td>
+          </tr>
+          <tr>
+            <td><code>'tom'</code></td>
+            <td>TomCongaEngine</td>
+            <td>Toms, congas, bongos</td>
+          </tr>
+          <tr>
+            <td><code>'rim'</code></td>
+            <td>RimClaveEngine</td>
+            <td>Rimshots, claves, cowbells</td>
+          </tr>
+          <tr>
+            <td><code>'shaker'</code></td>
+            <td>ShakerEngine</td>
+            <td>Granular shakers, maracas</td>
+          </tr>
+          <tr>
+            <td><code>'fold'</code></td>
+            <td>FoldWavetableEngine</td>
+            <td>Waveshaping/wavetable drums</td>
+          </tr>
+          <tr>
+            <td><code>'karplus'</code></td>
+            <td>KarplusEngine</td>
+            <td>Karplus-Strong string/tube</td>
+          </tr>
+          <tr>
+            <td><code>'fm'</code></td>
+            <td>FMPercEngine</td>
+            <td>4-operator FM synthesis</td>
+          </tr>
+        </table>
+
+        <h3>Direct Engine Instantiation</h3>
+<pre><code><span class="keyword">import</span> {
+  AnalogKickEngine,
+  FMPercEngine,
+  DEFAULT_ANALOG_KICK,
+  DEFAULT_FM_PERC
+} <span class="keyword">from</span> <span class="string">'dsonic'</span>;
+
+<span class="keyword">const</span> ctx = <span class="keyword">new</span> <span class="function">AudioContext</span>();
+
+<span class="comment">// Direct instantiation with defaults</span>
+<span class="keyword">const</span> kick = <span class="keyword">new</span> <span class="function">AnalogKickEngine</span>(ctx, {
+  ...DEFAULT_ANALOG_KICK,
+  bodyPitch: <span class="number">45</span>,
+  bodyDecay: <span class="number">0.5</span>,
+});
+
+<span class="comment">// FM bell with custom algorithm</span>
+<span class="keyword">const</span> bell = <span class="keyword">new</span> <span class="function">FMPercEngine</span>(ctx, {
+  ...DEFAULT_FM_PERC,
+  pitch: <span class="number">440</span>,
+  modIndex: <span class="number">10</span>,
+  brightness: <span class="number">0.8</span>,
+  decay: <span class="number">1.5</span>,
+});
+
+kick.<span class="function">getOutput</span>().<span class="function">connect</span>(ctx.destination);
+bell.<span class="function">getOutput</span>().<span class="function">connect</span>(ctx.destination);
+
+kick.<span class="function">trigger</span>(ctx.currentTime);
+bell.<span class="function">trigger</span>(ctx.currentTime + <span class="number">0.5</span>);</code></pre>
+
+        <h3>Engine Routing Example</h3>
+<pre><code><span class="keyword">import</span> { createEngine } <span class="keyword">from</span> <span class="string">'dsonic'</span>;
+
+<span class="keyword">const</span> ctx = <span class="keyword">new</span> <span class="function">AudioContext</span>();
+
+<span class="comment">// Create a gain node for mixing</span>
+<span class="keyword">const</span> masterGain = ctx.<span class="function">createGain</span>();
+masterGain.gain.value = <span class="number">0.8</span>;
+masterGain.<span class="function">connect</span>(ctx.destination);
+
+<span class="comment">// Create individual channel gains</span>
+<span class="keyword">const</span> kickGain = ctx.<span class="function">createGain</span>();
+<span class="keyword">const</span> snareGain = ctx.<span class="function">createGain</span>();
+kickGain.<span class="function">connect</span>(masterGain);
+snareGain.<span class="function">connect</span>(masterGain);
+
+<span class="comment">// Trigger function with routing</span>
+<span class="keyword">function</span> <span class="function">triggerSound</span>(type, params, destination) {
+  <span class="keyword">const</span> engine = <span class="function">createEngine</span>(ctx, type, params);
+  engine.<span class="function">getOutput</span>().<span class="function">connect</span>(destination);
+  <span class="keyword">const</span> { stop } = engine.<span class="function">trigger</span>(ctx.currentTime);
+
+  <span class="comment">// Auto-dispose after sound finishes</span>
+  <span class="keyword">const</span> decay = params.decay || <span class="number">0.5</span>;
+  <span class="function">setTimeout</span>(() =&gt; engine.<span class="function">dispose</span>(), (decay + <span class="number">0.3</span>) * <span class="number">1000</span>);
+}
+
+<span class="comment">// Use it</span>
+<span class="function">triggerSound</span>(<span class="string">'analog_kick'</span>, { bodyPitch: <span class="number">50</span> }, kickGain);
+<span class="function">triggerSound</span>(<span class="string">'hybrid_snare'</span>, { decay: <span class="number">0.15</span> }, snareGain);</code></pre>
+      </section>
+
+      <!-- Configuration -->
+      <section id="configuration" class="section">
+        <h2>Configuration</h2>
+
+        <h3>Audio Context Management</h3>
+<pre><code><span class="keyword">import</span> {
+  getAudioContext,
+  setAudioContext
+} <span class="keyword">from</span> <span class="string">'dsonic'</span>;
+
+<span class="comment">// Use your own AudioContext</span>
+<span class="keyword">const</span> myContext = <span class="keyword">new</span> <span class="function">AudioContext</span>({
+  sampleRate: <span class="number">48000</span>,
+  latencyHint: <span class="string">'interactive'</span>
+});
+<span class="function">setAudioContext</span>(myContext);
+
+<span class="comment">// Get the current context</span>
+<span class="keyword">const</span> ctx = <span class="function">getAudioContext</span>();</code></pre>
+
+        <h3>Waveguide Configuration</h3>
+<pre><code><span class="keyword">import</span> { setWaveguide, getDrumSynth } <span class="keyword">from</span> <span class="string">'dsonic'</span>;
+
+<span class="comment">// Global waveguide settings (affects all voices)</span>
+<span class="function">setWaveguide</span>({
+  tune: <span class="number">0.5</span>,      <span class="comment">// 0-1, resonator pitch</span>
+  decay: <span class="number">0.6</span>,     <span class="comment">// 0-1, feedback amount</span>
+  body: <span class="number">0.4</span>,      <span class="comment">// 0-1, brightness</span>
+  mode: <span class="string">'tube'</span>,   <span class="comment">// 'tube' or 'string'</span>
+});
+
+<span class="comment">// Or configure via DrumSynth</span>
+<span class="keyword">const</span> synth = <span class="function">getDrumSynth</span>();
+synth.<span class="function">setWaveguide</span>({ mode: <span class="string">'string'</span>, decay: <span class="number">0.8</span> });</code></pre>
+
+        <h3>Master Gain</h3>
+<pre><code><span class="keyword">import</span> { setMasterGain } <span class="keyword">from</span> <span class="string">'dsonic'</span>;
+
+<span class="comment">// Set master output level</span>
+<span class="function">setMasterGain</span>(<span class="number">0.7</span>); <span class="comment">// 0-1</span></code></pre>
+      </section>
+
+      <!-- Troubleshooting -->
+      <section id="troubleshooting" class="section">
+        <h2>Troubleshooting</h2>
+
+        <h3>No Sound Output</h3>
+        <div class="info-box">
+          <strong>AudioContext suspended:</strong> Browsers require user interaction before playing audio.
+          Ensure you create/resume AudioContext in a click handler.
+        </div>
+<pre><code>document.<span class="function">getElementById</span>(<span class="string">'play'</span>).<span class="function">onclick</span> = <span class="keyword">async</span> () =&gt; {
+  <span class="keyword">const</span> ctx = <span class="function">getAudioContext</span>();
+  <span class="keyword">if</span> (ctx.state === <span class="string">'suspended'</span>) {
+    <span class="keyword">await</span> ctx.<span class="function">resume</span>();
+  }
+  <span class="comment">// Now trigger sounds</span>
+};</code></pre>
+
+        <h3>registerSound Not Found</h3>
+        <p>This error means DSonic was loaded before Strudel finished initializing:</p>
+<pre><code><span class="comment">// Wait for Strudel's globals to be available</span>
+<span class="keyword">function</span> <span class="function">waitForStrudel</span>(callback, maxAttempts = <span class="number">50</span>) {
+  <span class="keyword">let</span> attempts = <span class="number">0</span>;
+  <span class="keyword">const</span> check = () =&gt; {
+    <span class="keyword">if</span> (<span class="keyword">typeof</span> registerSound === <span class="string">'function'</span>) {
+      <span class="function">callback</span>();
+    } <span class="keyword">else if</span> (attempts++ &lt; maxAttempts) {
+      <span class="function">setTimeout</span>(check, <span class="number">100</span>);
+    } <span class="keyword">else</span> {
+      console.<span class="function">error</span>(<span class="string">'Strudel not detected'</span>);
+    }
+  };
+  <span class="function">check</span>();
+}
+
+<span class="function">waitForStrudel</span>(() =&gt; <span class="function">registerDSonic</span>());</code></pre>
+
+        <h3>TypeScript Errors</h3>
+        <p>If TypeScript can't find DSonic types:</p>
+<pre><code><span class="comment">// Ensure moduleResolution is correct</span>
+<span class="comment">// tsconfig.json</span>
+{
+  "compilerOptions": {
+    "moduleResolution": "bundler" <span class="comment">// or "node16"</span>
+  }
+}</code></pre>
+
+        <h3>Memory Leaks</h3>
+        <p>Always dispose engines after use to prevent memory leaks:</p>
+<pre><code><span class="keyword">const</span> engine = <span class="function">createEngine</span>(ctx, <span class="string">'analog_kick'</span>, params);
+engine.<span class="function">getOutput</span>().<span class="function">connect</span>(ctx.destination);
+<span class="keyword">const</span> { stop } = engine.<span class="function">trigger</span>(ctx.currentTime);
+
+<span class="comment">// IMPORTANT: Dispose after sound finishes</span>
+<span class="keyword">const</span> decay = params.decay || <span class="number">0.5</span>;
+<span class="function">setTimeout</span>(() =&gt; {
+  engine.<span class="function">dispose</span>(); <span class="comment">// Disconnects all nodes</span>
+}, (decay + <span class="number">0.5</span>) * <span class="number">1000</span>);</code></pre>
+
+        <h3>Bundle Size</h3>
+        <p>For smaller bundles, import only what you need:</p>
+<pre><code><span class="comment">// Full import (~145KB)</span>
+<span class="keyword">import</span> * <span class="keyword">as</span> DSonic <span class="keyword">from</span> <span class="string">'dsonic'</span>;
+
+<span class="comment">// Selective import (smaller)</span>
+<span class="keyword">import</span> { AnalogKickEngine, HatEngine } <span class="keyword">from</span> <span class="string">'dsonic'</span>;</code></pre>
+
+        <h3>Getting Help</h3>
+        <ul>
+          <li><a href="https://github.com/sazl/dsonic/issues" target="_blank">GitHub Issues</a> - Report bugs or request features</li>
+          <li><a href="https://strudel.cc/learn/" target="_blank">Strudel Documentation</a> - Learn Strudel patterns</li>
+          <li><a href="../reference/">Parameter Reference</a> - Full parameter documentation</li>
+        </ul>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // Highlight active section in sidebar based on scroll
+    const sections = document.querySelectorAll('.section');
+    const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
+
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          sidebarLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+          });
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+
+    sections.forEach(section => sectionObserver.observe(section));
+  </script>
+</body>
+</html>

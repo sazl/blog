@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parameter Reference - DSonic</title>
+  <link rel="icon" type="image/svg+xml" href="/dsonic/assets/favicon-CDNk96qj.svg">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    .site-nav {
+      background: #151515;
+      border-bottom: 1px solid #333;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      color: #00ff88;
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+    }
+    .nav-links { display: flex; gap: 25px; }
+    .nav-links a {
+      color: #888;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active { color: #00ff88; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+    h1 { color: #00ff88; margin-bottom: 10px; font-size: 2.5rem; }
+    .subtitle { color: #666; margin-bottom: 30px; font-size: 1rem; }
+    .search-container {
+      background: #151515;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      position: sticky;
+      top: 60px;
+      z-index: 50;
+    }
+    .search-input {
+      width: 100%;
+      background: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 12px 15px;
+      color: #e0e0e0;
+      font-family: inherit;
+      font-size: 1rem;
+      outline: none;
+    }
+    .search-input:focus { border-color: #00ff88; }
+    .search-input::placeholder { color: #555; }
+    .filter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 15px;
+    }
+    .filter-btn {
+      background: #252525;
+      color: #888;
+      border: 1px solid #333;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover { background: #333; color: #fff; }
+    .filter-btn.active { background: #00ff88; color: #000; border-color: #00ff88; }
+    .results-count {
+      color: #666;
+      font-size: 0.85rem;
+      margin: 15px 0;
+    }
+    .engine-section {
+      margin-bottom: 30px;
+    }
+    .engine-title {
+      color: #00ff88;
+      font-size: 1.2rem;
+      margin: 0 0 15px 0;
+      padding: 10px 0;
+      border-bottom: 1px solid #333;
+    }
+    .param-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .param-table th {
+      text-align: left;
+      color: #666;
+      font-weight: normal;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      padding: 10px;
+      border-bottom: 1px solid #333;
+      position: sticky;
+      top: 150px;
+      background: #0a0a0a;
+    }
+    .param-table td {
+      padding: 10px;
+      border-bottom: 1px solid #1a1a1a;
+      vertical-align: top;
+    }
+    .param-table tr:hover { background: #151515; }
+    .param-table tr.hidden { display: none; }
+    .param-name {
+      color: #00ff88;
+      font-weight: bold;
+    }
+    .param-type { color: #61afef; font-size: 0.85rem; }
+    .param-range { color: #d19a66; font-size: 0.85rem; }
+    .param-default { color: #888; font-size: 0.85rem; }
+    .param-desc { color: #aaa; font-size: 0.85rem; }
+    .highlight { background: #00ff8833; }
+    .param-anchor {
+      color: #444;
+      text-decoration: none;
+      margin-right: 6px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .param-table tr:hover .param-anchor {
+      opacity: 1;
+    }
+    .param-anchor:hover {
+      color: #00ff88;
+    }
+    .param-table tr {
+      scroll-margin-top: 180px; /* Account for sticky header + search */
+    }
+    .param-table tr:target {
+      background: #00ff8822;
+      animation: highlight-fade 2s ease-out;
+    }
+    .param-table tr:target .param-name {
+      color: #00ff88;
+    }
+    @keyframes highlight-fade {
+      0% { background: #00ff8844; }
+      100% { background: #00ff8822; }
+    }
+    @media (max-width: 768px) {
+      .param-table th:nth-child(4),
+      .param-table td:nth-child(4) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="site-nav">
+    <a href="../" class="logo">
+      <svg class="logo-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#00ffaa"/>
+            <stop offset="50%" style="stop-color:#00ff88"/>
+            <stop offset="100%" style="stop-color:#00cc66"/>
+          </linearGradient>
+          <linearGradient id="drumBody" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#1a1a2e"/>
+            <stop offset="100%" style="stop-color:#0a0a14"/>
+          </linearGradient>
+          <filter id="glow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="waveGlow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <circle cx="24" cy="24" r="22" fill="#0a0a0a"/>
+        <circle cx="24" cy="24" r="22" fill="none" stroke="url(#logoGrad)" stroke-width="1.5" opacity="0.8"/>
+        <circle cx="24" cy="24" r="20" fill="none" stroke="#00ff88" stroke-width="0.5" opacity="0.3"/>
+        <path d="M10 16 L10 32 Q24 38, 38 32 L38 16 Q24 22, 10 16" fill="url(#drumBody)" opacity="0.6"/>
+        <g filter="url(#glow)">
+          <line x1="10" y1="16" x2="10" y2="32" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="38" y1="16" x2="38" y2="32" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="14" y1="17" x2="14" y2="31" stroke="#00ff88" stroke-width="0.8" opacity="0.5"/>
+          <line x1="19" y1="18" x2="19" y2="30" stroke="#00ff88" stroke-width="0.8" opacity="0.4"/>
+          <line x1="29" y1="18" x2="29" y2="30" stroke="#00ff88" stroke-width="0.8" opacity="0.4"/>
+          <line x1="34" y1="17" x2="34" y2="31" stroke="#00ff88" stroke-width="0.8" opacity="0.5"/>
+        </g>
+        <g filter="url(#glow)">
+          <ellipse cx="24" cy="16" rx="14" ry="5" fill="none" stroke="url(#logoGrad)" stroke-width="2"/>
+          <ellipse cx="24" cy="16" rx="10" ry="3.5" fill="none" stroke="#00ff88" stroke-width="0.6" opacity="0.4"/>
+          <ellipse cx="24" cy="16" rx="6" ry="2" fill="none" stroke="#00ff88" stroke-width="0.4" opacity="0.3"/>
+        </g>
+        <g filter="url(#glow)"><ellipse cx="24" cy="32" rx="14" ry="5" fill="none" stroke="url(#logoGrad)" stroke-width="2"/></g>
+        <g filter="url(#waveGlow)">
+          <path d="M24 10 Q26 7, 24 4" fill="none" stroke="#00ffaa" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M24 10 Q22 7, 24 4" fill="none" stroke="#00ffaa" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M18 11 Q15 7, 17 3" fill="none" stroke="#00ff88" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+          <path d="M13 13 Q9 9, 12 5" fill="none" stroke="#00ff88" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+          <path d="M30 11 Q33 7, 31 3" fill="none" stroke="#00ff88" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+          <path d="M35 13 Q39 9, 36 5" fill="none" stroke="#00ff88" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+        </g>
+        <g filter="url(#glow)" opacity="0.7">
+          <rect x="15" y="38" width="2" height="4" rx="1" fill="#00ff88"/>
+          <rect x="19" y="36" width="2" height="6" rx="1" fill="#00ff88"/>
+          <rect x="23" y="37" width="2" height="5" rx="1" fill="#00ffaa"/>
+          <rect x="27" y="35" width="2" height="7" rx="1" fill="#00ff88"/>
+          <rect x="31" y="38" width="2" height="4" rx="1" fill="#00ff88"/>
+        </g>
+        <g stroke="#00ff88" stroke-width="0.5" opacity="0.3">
+          <path d="M6 24 L3 24" stroke-linecap="round"/><circle cx="3" cy="24" r="1" fill="#00ff88"/>
+          <path d="M42 24 L45 24" stroke-linecap="round"/><circle cx="45" cy="24" r="1" fill="#00ff88"/>
+        </g>
+      </svg>
+      DSonic
+    </a>
+    <div class="nav-links">
+      <a href="../">Overview</a>
+      <a href="../engines/">Engines</a>
+      <a href="./" class="active">Reference</a>
+      <a href="../integration/">Integration</a>
+      <a href="../studio/">Studio</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>Parameter Reference</h1>
+    <p class="subtitle">Complete reference for all DSonic parameters</p>
+
+    <div class="search-container">
+      <input type="text" class="search-input" id="searchInput" placeholder="Search parameters... (e.g., pitch, decay, noise)">
+      <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="analog_kick">Analog Kick</button>
+        <button class="filter-btn" data-filter="membrane">Membrane</button>
+        <button class="filter-btn" data-filter="hybrid_snare">Hybrid Snare</button>
+        <button class="filter-btn" data-filter="clap">Clap</button>
+        <button class="filter-btn" data-filter="hat">Hat</button>
+        <button class="filter-btn" data-filter="cymbal">Cymbal</button>
+        <button class="filter-btn" data-filter="tom">Tom</button>
+        <button class="filter-btn" data-filter="rim">Rim</button>
+        <button class="filter-btn" data-filter="shaker">Shaker</button>
+        <button class="filter-btn" data-filter="fold">Fold</button>
+        <button class="filter-btn" data-filter="karplus">Karplus</button>
+        <button class="filter-btn" data-filter="fm">FM</button>
+        <button class="filter-btn" data-filter="output">Output</button>
+      </div>
+    </div>
+
+    <div class="results-count" id="resultsCount">Showing all parameters</div>
+
+    <div id="parameterList">
+      <!-- Parameters will be rendered here -->
+    </div>
+  </div>
+
+  <script>
+    // Complete parameter database
+    const PARAMETERS = [
+      // Output Parameters (shared across engines)
+      { engine: 'output', name: 'level', type: 'number', range: '0-1', default: '0.8', desc: 'Master output volume' },
+      { engine: 'output', name: 'pan', type: 'number', range: '-1 to 1', default: '0', desc: 'Stereo panning (left to right)' },
+      { engine: 'output', name: 'stereoWidth', type: 'number', range: '0-1', default: '0', desc: 'Stereo spread amount' },
+      { engine: 'output', name: 'phaseInvert', type: 'boolean', range: 'true|false', default: 'false', desc: 'Invert phase polarity' },
+
+      // Analog Kick Parameters
+      { engine: 'analog_kick', name: 'tune', type: 'number', range: '-24 to 24 semi', default: '0', desc: 'Pitch tuning in semitones' },
+      { engine: 'analog_kick', name: 'fineTune', type: 'number', range: '-100 to 100 cents', default: '0', desc: 'Fine pitch tuning' },
+      { engine: 'analog_kick', name: 'waveShape', type: 'number', range: '0-1', default: '0', desc: 'Sine to clipped sine to triangle' },
+      { engine: 'analog_kick', name: 'bodyPitch', type: 'number', range: '20-200 Hz', default: '50', desc: 'Fundamental pitch of kick body' },
+      { engine: 'analog_kick', name: 'bodyDecay', type: 'number', range: '0.01-2 sec', default: '0.3', desc: 'Body decay time' },
+      { engine: 'analog_kick', name: 'bodySustain', type: 'number', range: '0-1', default: '0', desc: 'Body sustain level' },
+      { engine: 'analog_kick', name: 'bodyHold', type: 'number', range: '0-0.5 sec', default: '0', desc: 'Body hold time before decay' },
+      { engine: 'analog_kick', name: 'pitchEnvAmount', type: 'number', range: '-48 to 48 semi', default: '36', desc: 'Pitch envelope sweep amount' },
+      { engine: 'analog_kick', name: 'pitchEnvAttack', type: 'number', range: '0-0.1 sec', default: '0', desc: 'Pitch envelope attack time' },
+      { engine: 'analog_kick', name: 'pitchEnvDecay', type: 'number', range: '0.001-0.5 sec', default: '0.08', desc: 'Pitch envelope decay time' },
+      { engine: 'analog_kick', name: 'pitchEnvCurve', type: 'enum', range: 'log|exp|linear', default: 'exp', desc: 'Pitch envelope curve shape' },
+      { engine: 'analog_kick', name: 'pitchRampDir', type: 'enum', range: 'down|up|bipolar', default: 'down', desc: 'Pitch ramp direction' },
+      { engine: 'analog_kick', name: 'pitchBendAsym', type: 'number', range: '0-1', default: '0.7', desc: 'Pitch bend asymmetry' },
+      { engine: 'analog_kick', name: 'clickLevel', type: 'number', range: '0-1', default: '0.3', desc: 'Transient click level' },
+      { engine: 'analog_kick', name: 'clickType', type: 'enum', range: 'impulse|noise|pulse|sample', default: 'impulse', desc: 'Click source type' },
+      { engine: 'analog_kick', name: 'clickTone', type: 'number', range: '0-1', default: '0.5', desc: 'Click brightness (dark to bright)' },
+      { engine: 'analog_kick', name: 'clickLength', type: 'number', range: '0.001-0.05 sec', default: '0.005', desc: 'Click duration' },
+      { engine: 'analog_kick', name: 'clickSat', type: 'number', range: '0-1', default: '0.2', desc: 'Click saturation' },
+      { engine: 'analog_kick', name: 'noiseLevel', type: 'number', range: '0-1', default: '0', desc: 'Noise layer level' },
+      { engine: 'analog_kick', name: 'noiseColor', type: 'enum', range: 'white|pink|metallic', default: 'white', desc: 'Noise color/character' },
+      { engine: 'analog_kick', name: 'noiseDecay', type: 'number', range: '0.01-1 sec', default: '0.1', desc: 'Noise decay time' },
+      { engine: 'analog_kick', name: 'noiseTransientMix', type: 'number', range: '0-1', default: '0.5', desc: 'Noise transient vs tail balance' },
+      { engine: 'analog_kick', name: 'metalNoiseAmt', type: 'number', range: '0-1', default: '0', desc: 'Metallic noise amount' },
+      { engine: 'analog_kick', name: 'metalNoiseFocus', type: 'number', range: '0-1', default: '0.5', desc: 'Metal noise frequency focus' },
+      { engine: 'analog_kick', name: 'harmonicsAmt', type: 'number', range: '0-1', default: '0', desc: 'Added harmonics level' },
+      { engine: 'analog_kick', name: 'harmonicsTune', type: 'number', range: '0-1', default: '0.5', desc: 'Harmonic tuning' },
+      { engine: 'analog_kick', name: 'pulseAmt', type: 'number', range: '0-1', default: '0', desc: 'Pulse wave amount' },
+      { engine: 'analog_kick', name: 'pulseWidth', type: 'number', range: '0.1-0.9', default: '0.5', desc: 'Pulse width' },
+      { engine: 'analog_kick', name: 'pulseDecay', type: 'number', range: '0.01-0.5 sec', default: '0.1', desc: 'Pulse decay time' },
+      { engine: 'analog_kick', name: 'driveAmt', type: 'number', range: '0-1', default: '0.1', desc: 'Drive/saturation amount' },
+      { engine: 'analog_kick', name: 'driveType', type: 'enum', range: 'soft|hard|fold|diode|tape', default: 'soft', desc: 'Drive character' },
+      { engine: 'analog_kick', name: 'compAmt', type: 'number', range: '0-1', default: '0', desc: 'Compression amount' },
+      { engine: 'analog_kick', name: 'compAttack', type: 'number', range: '0.001-0.1 sec', default: '0.01', desc: 'Compressor attack' },
+      { engine: 'analog_kick', name: 'compRelease', type: 'number', range: '0.01-0.5 sec', default: '0.1', desc: 'Compressor release' },
+      { engine: 'analog_kick', name: 'gateThresh', type: 'number', range: '0-1', default: '0', desc: 'Gate threshold' },
+      { engine: 'analog_kick', name: 'gateRelease', type: 'number', range: '0.01-0.5 sec', default: '0.1', desc: 'Gate release time' },
+      { engine: 'analog_kick', name: 'lowShelfFreq', type: 'number', range: '30-200 Hz', default: '80', desc: 'Low shelf frequency' },
+      { engine: 'analog_kick', name: 'lowShelfGain', type: 'number', range: '-12 to 12 dB', default: '0', desc: 'Low shelf gain' },
+      { engine: 'analog_kick', name: 'midFreq', type: 'number', range: '100-2000 Hz', default: '500', desc: 'Mid EQ frequency' },
+      { engine: 'analog_kick', name: 'midGain', type: 'number', range: '-12 to 12 dB', default: '0', desc: 'Mid EQ gain' },
+      { engine: 'analog_kick', name: 'midQ', type: 'number', range: '0.1-10', default: '1', desc: 'Mid EQ bandwidth' },
+      { engine: 'analog_kick', name: 'highShelfFreq', type: 'number', range: '2000-10000 Hz', default: '5000', desc: 'High shelf frequency' },
+      { engine: 'analog_kick', name: 'highShelfGain', type: 'number', range: '-12 to 12 dB', default: '0', desc: 'High shelf gain' },
+      { engine: 'analog_kick', name: 'dcOffset', type: 'number', range: '-0.1 to 0.1', default: '0', desc: 'DC offset adjustment' },
+
+      // Dual Membrane Parameters
+      { engine: 'membrane', name: 'pitch1', type: 'number', range: '20-500 Hz', default: '150', desc: 'Membrane 1 pitch' },
+      { engine: 'membrane', name: 'damping1', type: 'number', range: '0-1', default: '0.3', desc: 'Membrane 1 damping' },
+      { engine: 'membrane', name: 'tension1', type: 'number', range: '0-1', default: '0.5', desc: 'Membrane 1 tension' },
+      { engine: 'membrane', name: 'nonlinearity1', type: 'number', range: '0-1', default: '0.2', desc: 'Membrane 1 nonlinearity' },
+      { engine: 'membrane', name: 'decayScale1', type: 'number', range: '0.1-2', default: '1', desc: 'Membrane 1 decay scale' },
+      { engine: 'membrane', name: 'pitch2', type: 'number', range: '20-500 Hz', default: '200', desc: 'Membrane 2 pitch' },
+      { engine: 'membrane', name: 'damping2', type: 'number', range: '0-1', default: '0.4', desc: 'Membrane 2 damping' },
+      { engine: 'membrane', name: 'tension2', type: 'number', range: '0-1', default: '0.6', desc: 'Membrane 2 tension' },
+      { engine: 'membrane', name: 'nonlinearity2', type: 'number', range: '0-1', default: '0.3', desc: 'Membrane 2 nonlinearity' },
+      { engine: 'membrane', name: 'decayScale2', type: 'number', range: '0.1-2', default: '1', desc: 'Membrane 2 decay scale' },
+      { engine: 'membrane', name: 'coupling12', type: 'number', range: '0-1', default: '0.3', desc: 'Coupling from membrane 1 to 2' },
+      { engine: 'membrane', name: 'coupling21', type: 'number', range: '0-1', default: '0.2', desc: 'Coupling from membrane 2 to 1' },
+      { engine: 'membrane', name: 'couplingDelay', type: 'number', range: '0-0.01 sec', default: '0.001', desc: 'Coupling delay time' },
+      { engine: 'membrane', name: 'couplingLoss', type: 'number', range: '0-1', default: '0.3', desc: 'Energy loss in coupling' },
+      { engine: 'membrane', name: 'strikeType', type: 'enum', range: 'stick|mallet|brush|impulse', default: 'stick', desc: 'Strike exciter type' },
+      { engine: 'membrane', name: 'strikeHardness', type: 'number', range: '0-1', default: '0.6', desc: 'Strike hardness/brightness' },
+      { engine: 'membrane', name: 'strikePosition', type: 'number', range: '0-1', default: '0.3', desc: 'Strike position (center to edge)' },
+      { engine: 'membrane', name: 'strikeLevel', type: 'number', range: '0-1', default: '0.8', desc: 'Strike level' },
+      { engine: 'membrane', name: 'strikeNoiseAmt', type: 'number', range: '0-1', default: '0.2', desc: 'Strike noise amount' },
+      { engine: 'membrane', name: 'strikeNoiseColor', type: 'number', range: '0-1', default: '0.5', desc: 'Strike noise color' },
+      { engine: 'membrane', name: 'strikeLength', type: 'number', range: '0.001-0.05 sec', default: '0.01', desc: 'Strike duration' },
+      { engine: 'membrane', name: 'snareWireAmt', type: 'number', range: '0-1', default: '0', desc: 'Snare wire buzz level' },
+      { engine: 'membrane', name: 'snareWireTension', type: 'number', range: '0-1', default: '0.5', desc: 'Snare wire tension' },
+      { engine: 'membrane', name: 'snareWireDecay', type: 'number', range: '0.01-1 sec', default: '0.2', desc: 'Snare wire decay' },
+      { engine: 'membrane', name: 'snareWireTone', type: 'number', range: '0-1', default: '0.5', desc: 'Snare wire tone' },
+      { engine: 'membrane', name: 'shellSize', type: 'number', range: '0-1', default: '0.5', desc: 'Shell size (affects resonance)' },
+      { engine: 'membrane', name: 'shellResAmt', type: 'number', range: '0-1', default: '0.3', desc: 'Shell resonance amount' },
+      { engine: 'membrane', name: 'shellResFreq', type: 'number', range: '50-500 Hz', default: '200', desc: 'Shell resonance frequency' },
+      { engine: 'membrane', name: 'shellDamping', type: 'number', range: '0-1', default: '0.5', desc: 'Shell damping' },
+      { engine: 'membrane', name: 'airPortAmt', type: 'number', range: '0-1', default: '0.3', desc: 'Air port/vent amount' },
+      { engine: 'membrane', name: 'noiseFilterCutoff', type: 'number', range: '100-10000 Hz', default: '5000', desc: 'Noise filter cutoff' },
+      { engine: 'membrane', name: 'noiseFilterRes', type: 'number', range: '0-1', default: '0.3', desc: 'Noise filter resonance' },
+      { engine: 'membrane', name: 'toneTilt', type: 'number', range: '-1 to 1', default: '0', desc: 'Tonal tilt (dark to bright)' },
+      { engine: 'membrane', name: 'wavefoldAmt', type: 'number', range: '0-1', default: '0', desc: 'Wave folding amount' },
+      { engine: 'membrane', name: 'distortionAmt', type: 'number', range: '0-1', default: '0', desc: 'Distortion amount' },
+      { engine: 'membrane', name: 'distortionType', type: 'enum', range: 'soft|hard|fold|tube', default: 'soft', desc: 'Distortion type' },
+
+      // Hybrid Snare Parameters
+      { engine: 'hybrid_snare', name: 'bodyPitch', type: 'number', range: '80-400 Hz', default: '180', desc: 'Body fundamental pitch' },
+      { engine: 'hybrid_snare', name: 'bodyDecay', type: 'number', range: '0.01-0.5 sec', default: '0.15', desc: 'Body decay time' },
+      { engine: 'hybrid_snare', name: 'bodyTone', type: 'number', range: '0-1', default: '0.5', desc: 'Body tone (dull to ringy)' },
+      { engine: 'hybrid_snare', name: 'bodyDetune', type: 'number', range: '0-50 cents', default: '0', desc: 'Body detuning' },
+      { engine: 'hybrid_snare', name: 'bumpAmt', type: 'number', range: '0-1', default: '0.4', desc: 'Sub bump level' },
+      { engine: 'hybrid_snare', name: 'bumpPitch', type: 'number', range: '50-300 Hz', default: '120', desc: 'Sub bump pitch' },
+      { engine: 'hybrid_snare', name: 'bumpAttack', type: 'number', range: '0.001-0.02 sec', default: '0.002', desc: 'Bump attack time' },
+      { engine: 'hybrid_snare', name: 'bumpDecay', type: 'number', range: '0.01-0.1 sec', default: '0.04', desc: 'Bump decay time' },
+      { engine: 'hybrid_snare', name: 'bumpCurve', type: 'number', range: '0-1', default: '0.5', desc: 'Bump envelope curve' },
+      { engine: 'hybrid_snare', name: 'noiseAmt', type: 'number', range: '0-1', default: '0.6', desc: 'Noise layer level' },
+      { engine: 'hybrid_snare', name: 'noiseDecay', type: 'number', range: '0.05-0.5 sec', default: '0.15', desc: 'Noise decay time' },
+      { engine: 'hybrid_snare', name: 'noiseColor', type: 'number', range: '0-1', default: '0.5', desc: 'Noise color/brightness' },
+      { engine: 'hybrid_snare', name: 'noiseBandMode', type: 'enum', range: 'lp|hp|bp', default: 'bp', desc: 'Noise filter mode' },
+      { engine: 'hybrid_snare', name: 'noiseBandCutoff', type: 'number', range: '500-10000 Hz', default: '3000', desc: 'Noise filter cutoff' },
+      { engine: 'hybrid_snare', name: 'noiseBandQ', type: 'number', range: '0.1-10', default: '1', desc: 'Noise filter Q' },
+      { engine: 'hybrid_snare', name: 'noiseSnap', type: 'number', range: '0-1', default: '0.5', desc: 'Noise transient snap' },
+      { engine: 'hybrid_snare', name: 'ringAmt', type: 'number', range: '0-1', default: '0.2', desc: 'Ring modulation amount' },
+      { engine: 'hybrid_snare', name: 'ringFreq', type: 'number', range: '100-2000 Hz', default: '400', desc: 'Ring frequency' },
+      { engine: 'hybrid_snare', name: 'ringDecay', type: 'number', range: '0.01-0.3 sec', default: '0.1', desc: 'Ring decay time' },
+      { engine: 'hybrid_snare', name: 'ringSpread', type: 'number', range: '0-1', default: '0.3', desc: 'Ring stereo spread' },
+      { engine: 'hybrid_snare', name: 'fmAmt', type: 'number', range: '0-1', default: '0', desc: 'FM amount' },
+      { engine: 'hybrid_snare', name: 'fmFreq', type: 'number', range: '50-2000 Hz', default: '500', desc: 'FM modulator frequency' },
+      { engine: 'hybrid_snare', name: 'fmDecay', type: 'number', range: '0.01-0.2 sec', default: '0.05', desc: 'FM decay time' },
+      { engine: 'hybrid_snare', name: 'fmFeedback', type: 'number', range: '0-1', default: '0', desc: 'FM feedback amount' },
+      { engine: 'hybrid_snare', name: 'clipAmt', type: 'number', range: '0-1', default: '0.2', desc: 'Clipping/distortion amount' },
+      { engine: 'hybrid_snare', name: 'clipType', type: 'enum', range: 'soft|hard|fold', default: 'soft', desc: 'Clipping type' },
+      { engine: 'hybrid_snare', name: 'postClipTone', type: 'number', range: '-1 to 1', default: '0', desc: 'Post-clip tone (dark to bright)' },
+      { engine: 'hybrid_snare', name: 'hpfCutoff', type: 'number', range: '20-500 Hz', default: '80', desc: 'High-pass filter cutoff' },
+      { engine: 'hybrid_snare', name: 'lpfCutoff', type: 'number', range: '2000-20000 Hz', default: '12000', desc: 'Low-pass filter cutoff' },
+      { engine: 'hybrid_snare', name: 'filterRes', type: 'number', range: '0-1', default: '0', desc: 'Filter resonance' },
+      { engine: 'hybrid_snare', name: 'eqMidFreq', type: 'number', range: '500-5000 Hz', default: '2000', desc: 'Mid EQ frequency' },
+      { engine: 'hybrid_snare', name: 'eqMidGain', type: 'number', range: '-12 to 12 dB', default: '0', desc: 'Mid EQ gain' },
+      { engine: 'hybrid_snare', name: 'eqMidQ', type: 'number', range: '0.1-10', default: '1', desc: 'Mid EQ Q' },
+
+      // Clap Parameters
+      { engine: 'clap', name: 'clapCount', type: 'number', range: '1-8', default: '4', desc: 'Number of clap hits' },
+      { engine: 'clap', name: 'clapSpread', type: 'number', range: '0.005-0.05 sec', default: '0.015', desc: 'Time between clap hits' },
+      { engine: 'clap', name: 'clapRandom', type: 'number', range: '0-1', default: '0.3', desc: 'Timing randomization' },
+      { engine: 'clap', name: 'clapWidth', type: 'number', range: '0.01-0.2 sec', default: '0.05', desc: 'Overall clap width' },
+      { engine: 'clap', name: 'earlyReflections', type: 'number', range: '0-1', default: '0.2', desc: 'Early reflections amount' },
+      { engine: 'clap', name: 'noiseAmt', type: 'number', range: '0-1', default: '0.8', desc: 'Noise layer level' },
+      { engine: 'clap', name: 'noiseColor', type: 'number', range: '0-1', default: '0.6', desc: 'Noise brightness' },
+      { engine: 'clap', name: 'toneAmt', type: 'number', range: '0-1', default: '0.2', desc: 'Tonal layer level' },
+      { engine: 'clap', name: 'tonePitch', type: 'number', range: '100-1000 Hz', default: '300', desc: 'Tonal pitch' },
+      { engine: 'clap', name: 'toneDecay', type: 'number', range: '0.01-0.2 sec', default: '0.05', desc: 'Tonal decay' },
+      { engine: 'clap', name: 'snapAmt', type: 'number', range: '0-1', default: '0.5', desc: 'Transient snap amount' },
+      { engine: 'clap', name: 'snapLength', type: 'number', range: '0.001-0.02 sec', default: '0.005', desc: 'Snap duration' },
+      { engine: 'clap', name: 'highEmphasis', type: 'number', range: '0-1', default: '0.6', desc: 'High frequency emphasis' },
+      { engine: 'clap', name: 'hpfCutoff', type: 'number', range: '100-2000 Hz', default: '500', desc: 'High-pass filter cutoff' },
+      { engine: 'clap', name: 'lpfCutoff', type: 'number', range: '2000-15000 Hz', default: '8000', desc: 'Low-pass filter cutoff' },
+      { engine: 'clap', name: 'bandEmphasisFreq', type: 'number', range: '500-5000 Hz', default: '2000', desc: 'Band emphasis frequency' },
+      { engine: 'clap', name: 'bandEmphasisQ', type: 'number', range: '0.5-5', default: '1.5', desc: 'Band emphasis Q' },
+      { engine: 'clap', name: 'driveAmt', type: 'number', range: '0-1', default: '0.2', desc: 'Drive amount' },
+      { engine: 'clap', name: 'driveType', type: 'enum', range: 'soft|hard|tape', default: 'soft', desc: 'Drive type' },
+      { engine: 'clap', name: 'postDriveTone', type: 'number', range: '-1 to 1', default: '0', desc: 'Post-drive tone' },
+
+      // Hat Parameters
+      { engine: 'hat', name: 'mode', type: 'enum', range: 'closed|open|ride', default: 'closed', desc: 'Hat mode' },
+      { engine: 'hat', name: 'sourceType', type: 'enum', range: 'white|metallic|pulse|sample', default: 'metallic', desc: 'Sound source type' },
+      { engine: 'hat', name: 'decay', type: 'number', range: '0.01-2 sec', default: '0.05', desc: 'Decay time' },
+      { engine: 'hat', name: 'attack', type: 'number', range: '0-0.05 sec', default: '0.001', desc: 'Attack time' },
+      { engine: 'hat', name: 'hold', type: 'number', range: '0-0.2 sec', default: '0', desc: 'Hold time' },
+      { engine: 'hat', name: 'chokeMode', type: 'enum', range: 'hard|soft', default: 'hard', desc: 'Choke behavior' },
+      { engine: 'hat', name: 'gap', type: 'number', range: '0-1', default: '0.5', desc: 'Gap amount' },
+      { engine: 'hat', name: 'sizzleAmt', type: 'number', range: '0-1', default: '0.3', desc: 'Sizzle/shimmer amount' },
+      { engine: 'hat', name: 'sizzleSpeed', type: 'number', range: '0-1', default: '0.5', desc: 'Sizzle speed' },
+      { engine: 'hat', name: 'metalAmt', type: 'number', range: '0-1', default: '0.7', desc: 'Metallic character amount' },
+      { engine: 'hat', name: 'metalTuning', type: 'number', range: '0-1', default: '0.5', desc: 'Metal tuning' },
+      { engine: 'hat', name: 'metalRichness', type: 'number', range: '0-1', default: '0.6', desc: 'Metallic richness/complexity' },
+      { engine: 'hat', name: 'inharmonicity', type: 'number', range: '0-1', default: '0.4', desc: 'Inharmonic pitch spread' },
+      { engine: 'hat', name: 'hpfCutoff', type: 'number', range: '1000-10000 Hz', default: '5000', desc: 'High-pass filter cutoff' },
+      { engine: 'hat', name: 'lpfCutoff', type: 'number', range: '5000-20000 Hz', default: '15000', desc: 'Low-pass filter cutoff' },
+      { engine: 'hat', name: 'filterRes', type: 'number', range: '0-1', default: '0.2', desc: 'Filter resonance' },
+      { engine: 'hat', name: 'notchFreq', type: 'number', range: '2000-15000 Hz', default: '8000', desc: 'Notch filter frequency' },
+      { engine: 'hat', name: 'notchDepth', type: 'number', range: '0-1', default: '0', desc: 'Notch filter depth' },
+      { engine: 'hat', name: 'srrAmt', type: 'number', range: '0-1', default: '0', desc: 'Sample rate reduction' },
+      { engine: 'hat', name: 'bitReduce', type: 'number', range: '1-16 bits', default: '16', desc: 'Bit depth reduction' },
+      { engine: 'hat', name: 'gritTone', type: 'number', range: '0-1', default: '0.5', desc: 'Grit tone control' },
+      { engine: 'hat', name: 'driveAmt', type: 'number', range: '0-1', default: '0.1', desc: 'Drive amount' },
+      { engine: 'hat', name: 'driveType', type: 'enum', range: 'soft|hard|digital', default: 'soft', desc: 'Drive type' },
+
+      // Cymbal Parameters
+      { engine: 'cymbal', name: 'size', type: 'number', range: '0-1', default: '0.5', desc: 'Cymbal size' },
+      { engine: 'cymbal', name: 'decay', type: 'number', range: '0.5-10 sec', default: '3', desc: 'Decay/sustain time' },
+      { engine: 'cymbal', name: 'richness', type: 'number', range: '0-1', default: '0.6', desc: 'Harmonic richness' },
+      { engine: 'cymbal', name: 'topAmt', type: 'number', range: '0-1', default: '0.5', desc: 'Top/bell amount' },
+      { engine: 'cymbal', name: 'topTuning', type: 'number', range: '0-1', default: '0.5', desc: 'Top tuning' },
+      { engine: 'cymbal', name: 'edgePeakAmt', type: 'number', range: '0-1', default: '0.3', desc: 'Edge peak amount' },
+      { engine: 'cymbal', name: 'clusterDensity', type: 'number', range: '0-1', default: '0.5', desc: 'Partial cluster density' },
+      { engine: 'cymbal', name: 'inharmonicity', type: 'number', range: '0-1', default: '0.4', desc: 'Inharmonic spread' },
+      { engine: 'cymbal', name: 'feedbackAmt', type: 'number', range: '0-1', default: '0.2', desc: 'Internal feedback' },
+      { engine: 'cymbal', name: 'metalCharacter', type: 'number', range: '0-1', default: '0.3', desc: 'Clean to trashy character' },
+      { engine: 'cymbal', name: 'hpfCutoff', type: 'number', range: '500-5000 Hz', default: '1000', desc: 'High-pass filter cutoff' },
+      { engine: 'cymbal', name: 'lpfCutoff', type: 'number', range: '5000-20000 Hz', default: '18000', desc: 'Low-pass filter cutoff' },
+      { engine: 'cymbal', name: 'filterRes', type: 'number', range: '0-1', default: '0.1', desc: 'Filter resonance' },
+      { engine: 'cymbal', name: 'tiltEq', type: 'number', range: '-1 to 1', default: '0', desc: 'Tilt EQ (dark to bright)' },
+      { engine: 'cymbal', name: 'saturationAmt', type: 'number', range: '0-1', default: '0.1', desc: 'Saturation amount' },
+      { engine: 'cymbal', name: 'clipType', type: 'enum', range: 'soft|hard|tape', default: 'soft', desc: 'Clipping type' },
+
+      // Tom Parameters
+      { engine: 'tom', name: 'pitch', type: 'number', range: '40-400 Hz', default: '120', desc: 'Fundamental pitch' },
+      { engine: 'tom', name: 'decay', type: 'number', range: '0.05-2 sec', default: '0.3', desc: 'Decay time' },
+      { engine: 'tom', name: 'pitchRampAmt', type: 'number', range: '-24 to 24 semi', default: '12', desc: 'Pitch bend amount' },
+      { engine: 'tom', name: 'pitchRampDecay', type: 'number', range: '0.01-0.3 sec', default: '0.08', desc: 'Pitch bend time' },
+      { engine: 'tom', name: 'damping', type: 'number', range: '0-1', default: '0.3', desc: 'Damping amount' },
+      { engine: 'tom', name: 'clickAmt', type: 'number', range: '0-1', default: '0.3', desc: 'Attack click level' },
+      { engine: 'tom', name: 'clickHardness', type: 'number', range: '0-1', default: '0.5', desc: 'Click hardness' },
+      { engine: 'tom', name: 'attackLength', type: 'number', range: '0.001-0.02 sec', default: '0.005', desc: 'Attack length' },
+      { engine: 'tom', name: 'bodyTone', type: 'number', range: '0-1', default: '0.5', desc: 'Body tone (round to nasal)' },
+      { engine: 'tom', name: 'overtoneAmt', type: 'number', range: '0-1', default: '0.3', desc: 'Overtone level' },
+      { engine: 'tom', name: 'overtoneTuning', type: 'number', range: '0-1', default: '0.5', desc: 'Overtone tuning' },
+      { engine: 'tom', name: 'distortionAmt', type: 'number', range: '0-1', default: '0', desc: 'Distortion amount' },
+      { engine: 'tom', name: 'distortionHardness', type: 'number', range: '0-1', default: '0.5', desc: 'Distortion hardness' },
+      { engine: 'tom', name: 'tension', type: 'number', range: '0-1', default: '0.5', desc: 'Skin tension' },
+      { engine: 'tom', name: 'hitIntensityCurve', type: 'number', range: '0-1', default: '0.5', desc: 'Hit intensity curve' },
+
+      // Rim Parameters
+      { engine: 'rim', name: 'type', type: 'enum', range: 'rim|clave|cowbell|woodblock|metalblock', default: 'rim', desc: 'Percussion type' },
+      { engine: 'rim', name: 'pitch', type: 'number', range: '200-2000 Hz', default: '800', desc: 'Fundamental pitch' },
+      { engine: 'rim', name: 'decay', type: 'number', range: '0.01-0.5 sec', default: '0.08', desc: 'Decay time' },
+      { engine: 'rim', name: 'dualStrike', type: 'number', range: '0-1', default: '0', desc: 'Double strike amount' },
+      { engine: 'rim', name: 'enhance', type: 'number', range: '0-1', default: '0.5', desc: 'Enhancement/presence' },
+      { engine: 'rim', name: 'detune', type: 'number', range: '0-50 cents', default: '0', desc: 'Detuning amount' },
+      { engine: 'rim', name: 'snareTimbreAmt', type: 'number', range: '0-1', default: '0', desc: 'Snare timbre blend' },
+      { engine: 'rim', name: 'snarePitch', type: 'number', range: '100-500 Hz', default: '200', desc: 'Snare pitch component' },
+      { engine: 'rim', name: 'snareDecay', type: 'number', range: '0.01-0.2 sec', default: '0.05', desc: 'Snare decay' },
+      { engine: 'rim', name: 'feedbackAmt', type: 'number', range: '0-1', default: '0.2', desc: 'Feedback/ring amount' },
+      { engine: 'rim', name: 'ringFreq', type: 'number', range: '500-5000 Hz', default: '1500', desc: 'Ring frequency' },
+      { engine: 'rim', name: 'ringDecay', type: 'number', range: '0.01-0.3 sec', default: '0.05', desc: 'Ring decay' },
+      { engine: 'rim', name: 'hpfCutoff', type: 'number', range: '100-2000 Hz', default: '300', desc: 'High-pass cutoff' },
+      { engine: 'rim', name: 'lpfCutoff', type: 'number', range: '2000-15000 Hz', default: '10000', desc: 'Low-pass cutoff' },
+      { engine: 'rim', name: 'filterRes', type: 'number', range: '0-1', default: '0.2', desc: 'Filter resonance' },
+      { engine: 'rim', name: 'clipAmt', type: 'number', range: '0-1', default: '0.1', desc: 'Clipping amount' },
+      { engine: 'rim', name: 'clipType', type: 'enum', range: 'soft|hard|digital', default: 'soft', desc: 'Clip type' },
+
+      // Shaker Parameters
+      { engine: 'shaker', name: 'rattleAmt', type: 'number', range: '0-1', default: '0.7', desc: 'Rattle intensity' },
+      { engine: 'shaker', name: 'rattleType', type: 'enum', range: 'sand|beads|seeds|metallic', default: 'beads', desc: 'Particle material type' },
+      { engine: 'shaker', name: 'grainSize', type: 'number', range: '0-1', default: '0.3', desc: 'Particle/grain size' },
+      { engine: 'shaker', name: 'grainDensity', type: 'number', range: '0-1', default: '0.6', desc: 'Particle density/count' },
+      { engine: 'shaker', name: 'grainRandom', type: 'number', range: '0-1', default: '0.4', desc: 'Grain randomization' },
+      { engine: 'shaker', name: 'attackLength', type: 'number', range: '0.01-0.2 sec', default: '0.05', desc: 'Attack length' },
+      { engine: 'shaker', name: 'sustainLength', type: 'number', range: '0.05-1 sec', default: '0.2', desc: 'Sustain length' },
+      { engine: 'shaker', name: 'reverseMotion', type: 'boolean', range: 'true|false', default: 'false', desc: 'Reverse shaking motion' },
+      { engine: 'shaker', name: 'damping', type: 'number', range: '0-1', default: '0.4', desc: 'Damping amount' },
+      { engine: 'shaker', name: 'hardness', type: 'number', range: '0-1', default: '0.5', desc: 'Impact hardness' },
+      { engine: 'shaker', name: 'tone', type: 'number', range: '0-1', default: '0.5', desc: 'Overall tone (dark to bright)' },
+      { engine: 'shaker', name: 'bpCenter', type: 'number', range: '500-10000 Hz', default: '4000', desc: 'Bandpass center frequency' },
+      { engine: 'shaker', name: 'bpQ', type: 'number', range: '0.5-5', default: '1', desc: 'Bandpass Q' },
+      { engine: 'shaker', name: 'noiseColor', type: 'number', range: '0-1', default: '0.5', desc: 'Noise color' },
+
+      // Fold/Wavetable Parameters
+      { engine: 'fold', name: 'algorithm', type: 'enum', range: 'fold|wavetable|simple|complex|resonant|noiseTone', default: 'fold', desc: 'Synthesis algorithm' },
+      { engine: 'fold', name: 'mode', type: 'number', range: '1-3', default: '1', desc: 'Algorithm mode variant' },
+      { engine: 'fold', name: 'waveSelect', type: 'number', range: '0-127', default: '0', desc: 'Wavetable selection' },
+      { engine: 'fold', name: 'tune', type: 'number', range: '-24 to 24 semi', default: '0', desc: 'Pitch tuning' },
+      { engine: 'fold', name: 'fineTune', type: 'number', range: '-100 to 100 cents', default: '0', desc: 'Fine tuning' },
+      { engine: 'fold', name: 'decay', type: 'number', range: '0.01-2 sec', default: '0.3', desc: 'Decay time' },
+      { engine: 'fold', name: 'pitchEnvAmt', type: 'number', range: '-48 to 48 semi', default: '24', desc: 'Pitch envelope amount' },
+      { engine: 'fold', name: 'pitchEnvDecay', type: 'number', range: '0.001-0.5 sec', default: '0.1', desc: 'Pitch envelope decay' },
+      { engine: 'fold', name: 'foldAmt', type: 'number', range: '0-1', default: '0.5', desc: 'Wave folding intensity' },
+      { engine: 'fold', name: 'foldSymmetry', type: 'number', range: '0-1', default: '0.5', desc: 'Fold symmetry' },
+      { engine: 'fold', name: 'foldBias', type: 'number', range: '-1 to 1', default: '0', desc: 'Fold bias offset' },
+      { engine: 'fold', name: 'foldPreGain', type: 'number', range: '0-1', default: '0.5', desc: 'Pre-fold gain' },
+      { engine: 'fold', name: 'foldPostTone', type: 'number', range: '0-1', default: '0.5', desc: 'Post-fold tone' },
+      { engine: 'fold', name: 'tablePosition', type: 'number', range: '0-1', default: '0', desc: 'Wavetable position' },
+      { engine: 'fold', name: 'tableWarp', type: 'number', range: '0-1', default: '0', desc: 'Wavetable warping' },
+      { engine: 'fold', name: 'tableSmooth', type: 'number', range: '0-1', default: '0.5', desc: 'Wavetable smoothing' },
+      { engine: 'fold', name: 'harmonicEmphasis', type: 'number', range: '0-1', default: '0.5', desc: 'Harmonic emphasis' },
+      { engine: 'fold', name: 'antiAliasQuality', type: 'number', range: '0-1', default: '0.8', desc: 'Anti-aliasing quality' },
+      { engine: 'fold', name: 'modOscFreq', type: 'number', range: '0.1-10 ratio', default: '1', desc: 'Modulator frequency ratio' },
+      { engine: 'fold', name: 'modAmt', type: 'number', range: '0-1', default: '0', desc: 'Modulation amount' },
+      { engine: 'fold', name: 'noiseInjection', type: 'number', range: '0-1', default: '0', desc: 'Noise injection amount' },
+      { engine: 'fold', name: 'partialSpread', type: 'number', range: '0-1', default: '0', desc: 'Partial spread' },
+      { engine: 'fold', name: 'vcfMode', type: 'enum', range: 'hp|bp|lp', default: 'lp', desc: 'Filter mode' },
+      { engine: 'fold', name: 'cutoff', type: 'number', range: '100-15000 Hz', default: '5000', desc: 'Filter cutoff' },
+      { engine: 'fold', name: 'resonance', type: 'number', range: '0-1', default: '0.2', desc: 'Filter resonance' },
+      { engine: 'fold', name: 'driveAmt', type: 'number', range: '0-1', default: '0.2', desc: 'Drive amount' },
+      { engine: 'fold', name: 'driveMix', type: 'number', range: '0-1', default: '0.5', desc: 'Drive wet/dry mix' },
+
+      // Karplus Parameters
+      { engine: 'karplus', name: 'exciterType', type: 'enum', range: 'noise|pulse|impulse', default: 'noise', desc: 'Excitation source' },
+      { engine: 'karplus', name: 'exciterBrightness', type: 'number', range: '0-1', default: '0.7', desc: 'Exciter brightness' },
+      { engine: 'karplus', name: 'exciterLevel', type: 'number', range: '0-1', default: '0.8', desc: 'Exciter level' },
+      { engine: 'karplus', name: 'exciterLength', type: 'number', range: '0.001-0.05 sec', default: '0.01', desc: 'Exciter duration' },
+      { engine: 'karplus', name: 'pitch', type: 'number', range: '20-2000 Hz', default: '200', desc: 'Resonator pitch' },
+      { engine: 'karplus', name: 'decay', type: 'number', range: '0.1-10 sec', default: '1', desc: 'Resonator decay' },
+      { engine: 'karplus', name: 'damping', type: 'number', range: '0-1', default: '0.3', desc: 'High-frequency damping' },
+      { engine: 'karplus', name: 'dispersion', type: 'number', range: '0-1', default: '0.2', desc: 'Pitch dispersion/smearing' },
+      { engine: 'karplus', name: 'nonlinearity', type: 'number', range: '0-1', default: '0.1', desc: 'Nonlinear behavior' },
+      { engine: 'karplus', name: 'edge', type: 'number', range: '0-1', default: '0.3', desc: 'Edge/attack character' },
+      { engine: 'karplus', name: 'twang', type: 'number', range: '0-1', default: '0.5', desc: 'Twangy character' },
+      { engine: 'karplus', name: 'hpfCutoff', type: 'number', range: '20-500 Hz', default: '80', desc: 'High-pass cutoff' },
+      { engine: 'karplus', name: 'lpfCutoff', type: 'number', range: '1000-20000 Hz', default: '12000', desc: 'Low-pass cutoff' },
+      { engine: 'karplus', name: 'filterRes', type: 'number', range: '0-1', default: '0.1', desc: 'Filter resonance' },
+      { engine: 'karplus', name: 'driveAmt', type: 'number', range: '0-1', default: '0.1', desc: 'Drive amount' },
+      { engine: 'karplus', name: 'driveType', type: 'enum', range: 'soft|hard|tube', default: 'soft', desc: 'Drive type' },
+
+      // FM Parameters
+      { engine: 'fm', name: 'algorithm', type: 'number', range: '1-8', default: '1', desc: 'FM routing algorithm' },
+      { engine: 'fm', name: 'modIndex', type: 'number', range: '0-10', default: '2', desc: 'Modulation index/depth' },
+      { engine: 'fm', name: 'modIndexDecay', type: 'number', range: '0.01-0.5 sec', default: '0.1', desc: 'Mod index envelope decay' },
+      { engine: 'fm', name: 'brightness', type: 'number', range: '0-1', default: '0.5', desc: 'Overall brightness' },
+      { engine: 'fm', name: 'inharmonicityBias', type: 'number', range: '-1 to 1', default: '0', desc: 'Inharmonic detuning bias' },
+      { engine: 'fm', name: 'op1.ratio', type: 'number', range: '0.5-16', default: '1', desc: 'Operator 1 frequency ratio' },
+      { engine: 'fm', name: 'op1.level', type: 'number', range: '0-1', default: '1', desc: 'Operator 1 level' },
+      { engine: 'fm', name: 'op1.decay', type: 'number', range: '0.01-2 sec', default: '0.3', desc: 'Operator 1 decay' },
+      { engine: 'fm', name: 'op1.feedback', type: 'number', range: '0-1', default: '0', desc: 'Operator 1 feedback' },
+      { engine: 'fm', name: 'op2.ratio', type: 'number', range: '0.5-16', default: '2', desc: 'Operator 2 frequency ratio' },
+      { engine: 'fm', name: 'op2.level', type: 'number', range: '0-1', default: '0.5', desc: 'Operator 2 level' },
+      { engine: 'fm', name: 'op2.decay', type: 'number', range: '0.01-2 sec', default: '0.1', desc: 'Operator 2 decay' },
+      { engine: 'fm', name: 'op3.ratio', type: 'number', range: '0.5-16', default: '3', desc: 'Operator 3 frequency ratio' },
+      { engine: 'fm', name: 'op3.level', type: 'number', range: '0-1', default: '0.3', desc: 'Operator 3 level' },
+      { engine: 'fm', name: 'op4.ratio', type: 'number', range: '0.5-16', default: '4', desc: 'Operator 4 frequency ratio' },
+      { engine: 'fm', name: 'op4.level', type: 'number', range: '0-1', default: '0.2', desc: 'Operator 4 level' },
+      { engine: 'fm', name: 'hpfCutoff', type: 'number', range: '20-500 Hz', default: '20', desc: 'High-pass cutoff' },
+      { engine: 'fm', name: 'lpfCutoff', type: 'number', range: '500-20000 Hz', default: '15000', desc: 'Low-pass cutoff' },
+      { engine: 'fm', name: 'filterRes', type: 'number', range: '0-1', default: '0', desc: 'Filter resonance' },
+      { engine: 'fm', name: 'driveAmt', type: 'number', range: '0-1', default: '0.1', desc: 'Drive amount' },
+      { engine: 'fm', name: 'driveType', type: 'enum', range: 'soft|hard|fold', default: 'soft', desc: 'Drive type' },
+    ];
+
+    const ENGINE_NAMES = {
+      'output': 'Output (All Engines)',
+      'analog_kick': 'Analog Kick',
+      'membrane': 'Dual Membrane',
+      'hybrid_snare': 'Hybrid Snare',
+      'clap': 'Clap',
+      'hat': 'Hat',
+      'cymbal': 'Cymbal',
+      'tom': 'Tom/Conga',
+      'rim': 'Rim/Clave',
+      'shaker': 'Shaker',
+      'fold': 'Fold/Wavetable',
+      'karplus': 'Karplus',
+      'fm': 'FM Perc'
+    };
+
+    let currentFilter = 'all';
+    let searchQuery = '';
+
+    function renderParameters() {
+      const container = document.getElementById('parameterList');
+      const resultsCount = document.getElementById('resultsCount');
+
+      // Group by engine
+      const grouped = {};
+      let totalVisible = 0;
+
+      PARAMETERS.forEach(param => {
+        const matchesFilter = currentFilter === 'all' || param.engine === currentFilter;
+        const matchesSearch = searchQuery === '' ||
+          param.name.toLowerCase().includes(searchQuery) ||
+          param.engine.toLowerCase().includes(searchQuery) ||
+          param.desc.toLowerCase().includes(searchQuery);
+
+        if (matchesFilter && matchesSearch) {
+          if (!grouped[param.engine]) grouped[param.engine] = [];
+          grouped[param.engine].push(param);
+          totalVisible++;
+        }
+      });
+
+      resultsCount.textContent = `Showing ${totalVisible} of ${PARAMETERS.length} parameters`;
+
+      let html = '';
+      for (const engine in grouped) {
+        html += `
+          <div class="engine-section">
+            <h2 class="engine-title">${ENGINE_NAMES[engine] || engine}</h2>
+            <table class="param-table">
+              <thead>
+                <tr>
+                  <th>Parameter</th>
+                  <th>Type</th>
+                  <th>Range</th>
+                  <th>Default</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+
+        grouped[engine].forEach(param => {
+          const highlightName = searchQuery ? param.name.replace(new RegExp(`(${searchQuery})`, 'gi'), '<span class="highlight">$1</span>') : param.name;
+          const highlightDesc = searchQuery ? param.desc.replace(new RegExp(`(${searchQuery})`, 'gi'), '<span class="highlight">$1</span>') : param.desc;
+          const paramId = `${engine}-${param.name}`;
+
+          html += `
+            <tr id="${paramId}">
+              <td class="param-name"><a href="#${paramId}" class="param-anchor" title="Link to this parameter">#</a>.${highlightName}()</td>
+              <td class="param-type">${param.type}</td>
+              <td class="param-range">${param.range}</td>
+              <td class="param-default">${param.default}</td>
+              <td class="param-desc">${highlightDesc}</td>
+            </tr>
+          `;
+        });
+
+        html += '</tbody></table></div>';
+      }
+
+      container.innerHTML = html || '<p style="color: #666; text-align: center; padding: 40px;">No parameters found</p>';
+
+      // Handle URL hash for deep linking
+      if (window.location.hash) {
+        const element = document.getElementById(window.location.hash.slice(1));
+        if (element) {
+          setTimeout(() => {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 100);
+        }
+      }
+    }
+
+    // Search input handler with debounce
+    let searchTimeout;
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        searchQuery = e.target.value.toLowerCase();
+        renderParameters();
+      }, 150);
+    });
+
+    // Filter button handlers
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        renderParameters();
+      });
+    });
+
+    // Initial render
+    renderParameters();
+  </script>
+</body>
+</html>

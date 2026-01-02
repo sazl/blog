@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSonic Studio - Sound Design Interface</title>
+  <link rel="icon" type="image/svg+xml" href="/dsonic/assets/favicon-CDNk96qj.svg">
+  <script type="module" crossorigin src="/dsonic/assets/studio-BwSAdNQM.js"></script>
+  <link rel="modulepreload" crossorigin href="/dsonic/assets/dsonic-BoM1o26J.js">
+  <link rel="stylesheet" crossorigin href="/dsonic/assets/studio-BhY94zhK.css">
+</head>
+<body>
+  <nav class="site-nav">
+    <a href="../" class="logo">
+      <svg class="logo-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#00ffaa"/>
+            <stop offset="50%" style="stop-color:#00ff88"/>
+            <stop offset="100%" style="stop-color:#00cc66"/>
+          </linearGradient>
+          <linearGradient id="drumBody" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#1a1a2e"/>
+            <stop offset="100%" style="stop-color:#0a0a14"/>
+          </linearGradient>
+          <filter id="glow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="waveGlow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <circle cx="24" cy="24" r="22" fill="#0a0a0a"/>
+        <circle cx="24" cy="24" r="22" fill="none" stroke="url(#logoGrad)" stroke-width="1.5" opacity="0.8"/>
+        <circle cx="24" cy="24" r="20" fill="none" stroke="#00ff88" stroke-width="0.5" opacity="0.3"/>
+        <path d="M10 16 L10 32 Q24 38, 38 32 L38 16 Q24 22, 10 16" fill="url(#drumBody)" opacity="0.6"/>
+        <g filter="url(#glow)">
+          <line x1="10" y1="16" x2="10" y2="32" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="38" y1="16" x2="38" y2="32" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="14" y1="17" x2="14" y2="31" stroke="#00ff88" stroke-width="0.8" opacity="0.5"/>
+          <line x1="19" y1="18" x2="19" y2="30" stroke="#00ff88" stroke-width="0.8" opacity="0.4"/>
+          <line x1="29" y1="18" x2="29" y2="30" stroke="#00ff88" stroke-width="0.8" opacity="0.4"/>
+          <line x1="34" y1="17" x2="34" y2="31" stroke="#00ff88" stroke-width="0.8" opacity="0.5"/>
+        </g>
+        <g filter="url(#glow)">
+          <ellipse cx="24" cy="16" rx="14" ry="5" fill="none" stroke="url(#logoGrad)" stroke-width="2"/>
+          <ellipse cx="24" cy="16" rx="10" ry="3.5" fill="none" stroke="#00ff88" stroke-width="0.6" opacity="0.4"/>
+          <ellipse cx="24" cy="16" rx="6" ry="2" fill="none" stroke="#00ff88" stroke-width="0.4" opacity="0.3"/>
+        </g>
+        <g filter="url(#glow)"><ellipse cx="24" cy="32" rx="14" ry="5" fill="none" stroke="url(#logoGrad)" stroke-width="2"/></g>
+        <g filter="url(#waveGlow)">
+          <path d="M24 10 Q26 7, 24 4" fill="none" stroke="#00ffaa" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M24 10 Q22 7, 24 4" fill="none" stroke="#00ffaa" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M18 11 Q15 7, 17 3" fill="none" stroke="#00ff88" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+          <path d="M13 13 Q9 9, 12 5" fill="none" stroke="#00ff88" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+          <path d="M30 11 Q33 7, 31 3" fill="none" stroke="#00ff88" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+          <path d="M35 13 Q39 9, 36 5" fill="none" stroke="#00ff88" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+        </g>
+        <g filter="url(#glow)" opacity="0.7">
+          <rect x="15" y="38" width="2" height="4" rx="1" fill="#00ff88"/>
+          <rect x="19" y="36" width="2" height="6" rx="1" fill="#00ff88"/>
+          <rect x="23" y="37" width="2" height="5" rx="1" fill="#00ffaa"/>
+          <rect x="27" y="35" width="2" height="7" rx="1" fill="#00ff88"/>
+          <rect x="31" y="38" width="2" height="4" rx="1" fill="#00ff88"/>
+        </g>
+        <g stroke="#00ff88" stroke-width="0.5" opacity="0.3">
+          <path d="M6 24 L3 24" stroke-linecap="round"/><circle cx="3" cy="24" r="1" fill="#00ff88"/>
+          <path d="M42 24 L45 24" stroke-linecap="round"/><circle cx="45" cy="24" r="1" fill="#00ff88"/>
+        </g>
+      </svg>
+      DSonic
+    </a>
+    <div class="nav-links">
+      <a href="../">Overview</a>
+      <a href="../engines/">Engines</a>
+      <a href="../reference/">Reference</a>
+      <a href="./" class="active">Studio</a>
+    </div>
+  </nav>
+
+  <div class="studio-container">
+    <!-- Zone 1: Toolbar -->
+    <div class="toolbar-zone">
+      <div class="toolbar-content">
+        <div class="toolbar-left">
+          <button class="action-btn randomize-btn" id="randomize-btn">Randomize</button>
+          <button class="action-btn reset-btn" id="reset-btn">Reset</button>
+        </div>
+        <div class="toolbar-center">
+          <select class="preset-select" id="preset-select">
+            <option value="">Load Preset...</option>
+          </select>
+          <input type="text" class="preset-input" id="preset-name" placeholder="Preset name...">
+          <button class="action-btn save-btn" id="save-preset-btn">Save</button>
+          <button class="action-btn delete-btn" id="delete-preset-btn" style="display: none;">Delete</button>
+          <span class="export-hint" id="export-hint"></span>
+        </div>
+        <div class="toolbar-right">
+          <button class="copy-btn" id="copy-btn">Copy Code</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Zone 2: Main Content (Modules + Pads) -->
+    <div class="main-zone">
+      <!-- Engine Modules Grid -->
+      <div class="modules-grid" id="modules-container">
+        <!-- Engine modules will be inserted here by JavaScript -->
+      </div>
+
+      <!-- Drum Pads Row -->
+      <div class="pads-row" id="pads-container">
+        <!-- Drum pads will be inserted here by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Zone 3: Mixer Footer -->
+    <div class="mixer-footer">
+      <div class="mixer-content" id="mixer-container">
+        <!-- Mixer faders will be inserted here by JavaScript -->
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

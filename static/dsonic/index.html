@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSonic - Web Audio Drum Synthesizer for Strudel</title>
+  <link rel="icon" type="image/svg+xml" href="/dsonic/assets/favicon-CDNk96qj.svg">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    .site-nav {
+      background: #151515;
+      border-bottom: 1px solid #333;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      color: #00ff88;
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+    }
+    .nav-links { display: flex; gap: 25px; }
+    .nav-links a {
+      color: #888;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active { color: #00ff88; }
+    @media (max-width: 700px) {
+      .nav-links { gap: 15px; }
+      .nav-links a { font-size: 0.8rem; }
+    }
+
+    /* Hero Section */
+    .hero {
+      background: linear-gradient(135deg, #0a0a0a 0%, #151520 50%, #0a0a0a 100%);
+      padding: 80px 20px 60px;
+      text-align: center;
+      border-bottom: 1px solid #222;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.03) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .hero h1 {
+      font-size: 4rem;
+      color: #00ff88;
+      margin: 0 0 10px 0;
+      letter-spacing: -2px;
+      text-shadow: 0 0 40px rgba(0, 255, 136, 0.3);
+    }
+    .hero-tagline {
+      font-size: 1.3rem;
+      color: #888;
+      margin: 0 0 30px 0;
+      line-height: 1.6;
+    }
+    .hero-tagline em {
+      color: #00ff88;
+      font-style: normal;
+    }
+    .hero-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: #00ff88;
+      color: #000;
+      padding: 14px 32px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1rem;
+      transition: all 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-primary:hover {
+      background: #00cc6a;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 255, 136, 0.25);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: #00ff88;
+      padding: 14px 32px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1rem;
+      border: 2px solid #00ff88;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover {
+      background: rgba(0, 255, 136, 0.1);
+      transform: translateY(-2px);
+    }
+
+    /* Features Grid */
+    .features {
+      padding: 60px 20px;
+      background: #0d0d0d;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .feature-card {
+      background: #151515;
+      border: 1px solid #252525;
+      border-radius: 12px;
+      padding: 30px;
+      transition: all 0.3s;
+    }
+    .feature-card:hover {
+      border-color: #00ff8855;
+      transform: translateY(-4px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+    a.feature-card {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    a.feature-card:focus {
+      outline: 2px solid #00ff88;
+      outline-offset: 2px;
+    }
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 15px;
+    }
+    .feature-card h3 {
+      color: #00ff88;
+      margin: 0 0 10px 0;
+      font-size: 1.1rem;
+    }
+    .feature-card p {
+      color: #888;
+      margin: 0;
+      line-height: 1.6;
+      font-size: 0.9rem;
+    }
+
+    /* Demo Section */
+    .demo-section {
+      padding: 60px 20px;
+      background: #0a0a0a;
+      border-top: 1px solid #222;
+    }
+    .demo-container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .demo-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .demo-header h2 {
+      color: #00ff88;
+      margin: 0 0 10px 0;
+      font-size: 1.8rem;
+    }
+    .demo-header p {
+      color: #666;
+      margin: 0;
+      font-size: 0.95rem;
+    }
+    .editor-container {
+      background: #1a1a1a;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #333;
+    }
+    .editor-controls {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #151515;
+      border-bottom: 1px solid #333;
+      align-items: center;
+    }
+    .control-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #252525;
+      color: #aaa;
+      padding: 8px 16px;
+      border: 1px solid #333;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .control-btn:hover { background: #333; color: #fff; }
+    .control-btn.play-btn:hover { background: #00884433; border-color: #00ff88; color: #00ff88; }
+    .control-btn.stop-btn:hover { background: #ff444433; border-color: #ff4444; color: #ff4444; }
+    .control-btn.update-btn:hover { background: #4488ff33; border-color: #4488ff; color: #4488ff; }
+    .control-btn.playing { background: #00884433; border-color: #00ff88; color: #00ff88; }
+    .control-hint {
+      margin-left: auto;
+      color: #555;
+      font-size: 0.75rem;
+    }
+    .control-hint kbd {
+      background: #252525;
+      padding: 2px 5px;
+      border-radius: 3px;
+      border: 1px solid #333;
+    }
+    #editor-wrapper {
+      background: #1a1a1a;
+    }
+    strudel-editor {
+      display: block;
+      --background: #1a1a1a;
+      --foreground: #e0e0e0;
+      --caret: #00ff88;
+      --selection: #00ff8833;
+      --gutterBackground: #151515;
+      --gutterForeground: #555;
+      --lineHighlight: #ffffff08;
+    }
+    .error-display {
+      display: none;
+      background: #2a1515;
+      border-top: 1px solid #ff4444;
+      padding: 12px 16px;
+      color: #ff8888;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    .error-display.visible {
+      display: block;
+    }
+    .error-display .error-title {
+      color: #ff4444;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .error-display .error-message {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .error-display .error-dismiss {
+      float: right;
+      background: none;
+      border: none;
+      color: #ff8888;
+      cursor: pointer;
+      font-size: 1.2rem;
+      line-height: 1;
+      padding: 0;
+      margin-left: 10px;
+    }
+    .error-display .error-dismiss:hover {
+      color: #ff4444;
+    }
+
+    /* Engine Preview */
+    .engines-preview {
+      padding: 50px 20px;
+      background: #0d0d0d;
+      border-top: 1px solid #222;
+    }
+    .engines-preview-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .engines-preview h2 {
+      color: #00ff88;
+      margin: 0 0 8px 0;
+      font-size: 1.5rem;
+    }
+    .engines-preview p {
+      color: #666;
+      margin: 0 0 30px 0;
+    }
+    .engine-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .engine-tag {
+      display: inline-block;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      padding: 10px 18px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: #aaa;
+      transition: all 0.2s;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .engine-tag:hover {
+      border-color: #00ff88;
+      color: #00ff88;
+      background: rgba(0, 255, 136, 0.05);
+    }
+    .engine-tag span {
+      color: #666;
+      margin-left: 6px;
+    }
+
+    /* CTA Section */
+    .cta-section {
+      padding: 70px 20px;
+      background: linear-gradient(180deg, #0a0a0a 0%, #101015 100%);
+      text-align: center;
+      border-top: 1px solid #222;
+    }
+    .cta-section h2 {
+      color: #e0e0e0;
+      margin: 0 0 15px 0;
+      font-size: 1.8rem;
+    }
+    .cta-section p {
+      color: #666;
+      margin: 0 0 30px 0;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    footer {
+      padding: 30px 20px;
+      background: #0a0a0a;
+      border-top: 1px solid #222;
+      text-align: center;
+      color: #555;
+      font-size: 0.85rem;
+    }
+    footer a {
+      color: #00ff88;
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2.5rem; }
+      .hero-tagline { font-size: 1.1rem; }
+      .hero-buttons { flex-direction: column; align-items: center; }
+      .features-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script type="module" crossorigin src="/dsonic/assets/main-CpX81me5.js"></script>
+  <link rel="modulepreload" crossorigin href="/dsonic/assets/dsonic-BoM1o26J.js">
+  <link rel="modulepreload" crossorigin href="/dsonic/assets/index-DXN4EnIs-c_NZj4Hy.js">
+</head>
+<body>
+  <nav class="site-nav">
+    <a href="./" class="logo">
+      <svg class="logo-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#00ffaa"/>
+            <stop offset="50%" style="stop-color:#00ff88"/>
+            <stop offset="100%" style="stop-color:#00cc66"/>
+          </linearGradient>
+          <linearGradient id="drumBody" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#1a1a2e"/>
+            <stop offset="100%" style="stop-color:#0a0a14"/>
+          </linearGradient>
+          <filter id="glow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="waveGlow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <circle cx="24" cy="24" r="22" fill="#0a0a0a"/>
+        <circle cx="24" cy="24" r="22" fill="none" stroke="url(#logoGrad)" stroke-width="1.5" opacity="0.8"/>
+        <circle cx="24" cy="24" r="20" fill="none" stroke="#00ff88" stroke-width="0.5" opacity="0.3"/>
+        <path d="M10 16 L10 32 Q24 38, 38 32 L38 16 Q24 22, 10 16" fill="url(#drumBody)" opacity="0.6"/>
+        <g filter="url(#glow)">
+          <line x1="10" y1="16" x2="10" y2="32" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="38" y1="16" x2="38" y2="32" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="14" y1="17" x2="14" y2="31" stroke="#00ff88" stroke-width="0.8" opacity="0.5"/>
+          <line x1="19" y1="18" x2="19" y2="30" stroke="#00ff88" stroke-width="0.8" opacity="0.4"/>
+          <line x1="29" y1="18" x2="29" y2="30" stroke="#00ff88" stroke-width="0.8" opacity="0.4"/>
+          <line x1="34" y1="17" x2="34" y2="31" stroke="#00ff88" stroke-width="0.8" opacity="0.5"/>
+        </g>
+        <g filter="url(#glow)">
+          <ellipse cx="24" cy="16" rx="14" ry="5" fill="none" stroke="url(#logoGrad)" stroke-width="2"/>
+          <ellipse cx="24" cy="16" rx="10" ry="3.5" fill="none" stroke="#00ff88" stroke-width="0.6" opacity="0.4"/>
+          <ellipse cx="24" cy="16" rx="6" ry="2" fill="none" stroke="#00ff88" stroke-width="0.4" opacity="0.3"/>
+        </g>
+        <g filter="url(#glow)"><ellipse cx="24" cy="32" rx="14" ry="5" fill="none" stroke="url(#logoGrad)" stroke-width="2"/></g>
+        <g filter="url(#waveGlow)">
+          <path d="M24 10 Q26 7, 24 4" fill="none" stroke="#00ffaa" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M24 10 Q22 7, 24 4" fill="none" stroke="#00ffaa" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M18 11 Q15 7, 17 3" fill="none" stroke="#00ff88" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+          <path d="M13 13 Q9 9, 12 5" fill="none" stroke="#00ff88" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+          <path d="M30 11 Q33 7, 31 3" fill="none" stroke="#00ff88" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+          <path d="M35 13 Q39 9, 36 5" fill="none" stroke="#00ff88" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+        </g>
+        <g filter="url(#glow)" opacity="0.7">
+          <rect x="15" y="38" width="2" height="4" rx="1" fill="#00ff88"/>
+          <rect x="19" y="36" width="2" height="6" rx="1" fill="#00ff88"/>
+          <rect x="23" y="37" width="2" height="5" rx="1" fill="#00ffaa"/>
+          <rect x="27" y="35" width="2" height="7" rx="1" fill="#00ff88"/>
+          <rect x="31" y="38" width="2" height="4" rx="1" fill="#00ff88"/>
+        </g>
+        <g stroke="#00ff88" stroke-width="0.5" opacity="0.3">
+          <path d="M6 24 L3 24" stroke-linecap="round"/><circle cx="3" cy="24" r="1" fill="#00ff88"/>
+          <path d="M42 24 L45 24" stroke-linecap="round"/><circle cx="45" cy="24" r="1" fill="#00ff88"/>
+        </g>
+      </svg>
+      DSonic
+    </a>
+    <div class="nav-links">
+      <a href="./" class="active">Overview</a>
+      <a href="./engines/">Engines</a>
+      <a href="./reference/">Reference</a>
+      <a href="./integration/">Integration</a>
+      <a href="./studio/">Studio</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <canvas class="hero-canvas" id="hero-canvas"></canvas>
+    <div class="hero-content">
+      <h1>DSonic</h1>
+      <p class="hero-tagline">
+        A <em>Web Audio drum synthesizer</em> designed for <em>Strudel</em> live-coding.<br>
+        12 synthesis engines. Endless rhythmic possibilities.
+      </p>
+      <div class="hero-buttons">
+        <a href="./studio/" class="btn-primary">Open Studio</a>
+        <a href="./engines/" class="btn-secondary">Explore Engines</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="features">
+    <div class="features-grid">
+      <a href="./engines/" class="feature-card">
+        <div class="feature-icon">&#127932;</div>
+        <h3>12 Synthesis Engines</h3>
+        <p>From 808-style analog kicks to FM percussion, physical modeling, and wavetable synthesis. Each engine precisely crafted for rhythmic excellence.</p>
+      </a>
+      <a href="./integration/" class="feature-card">
+        <div class="feature-icon">&#128301;</div>
+        <h3>Strudel Integration</h3>
+        <p>Seamless integration with Strudel's pattern language. Every parameter is patternable for evolving, generative drum sequences.</p>
+      </a>
+      <a href="./studio/" class="feature-card">
+        <div class="feature-icon">&#127899;</div>
+        <h3>Visual Studio</h3>
+        <p>Intuitive knob-based interface inspired by hardware synths. Design sounds visually, then export to Strudel code.</p>
+      </a>
+      <a href="./reference/" class="feature-card">
+        <div class="feature-icon">&#9889;</div>
+        <h3>Real-time Performance</h3>
+        <p>Optimized Web Audio synthesis with minimal latency. Built for live performance and responsive interaction.</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- Demo Section -->
+  <section class="demo-section">
+    <div class="demo-container">
+      <div class="demo-header">
+        <h2>Techno Loop</h2>
+        <p>A 16-bar evolving techno groove. Press play and tweak the parameters.</p>
+      </div>
+
+      <div class="editor-container">
+        <div class="editor-controls">
+          <button class="control-btn play-btn" id="play-btn">&#9654; Play</button>
+          <button class="control-btn stop-btn" id="stop-btn">&#9632; Stop</button>
+          <button class="control-btn update-btn" id="update-btn">&#8635; Update</button>
+          <span class="control-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> play | <kbd>Ctrl</kbd>+<kbd>.</kbd> stop | <kbd>Ctrl</kbd>+<kbd>U</kbd> update</span>
+        </div>
+        <div id="editor-wrapper">
+          <strudel-editor id="strudel-editor"><!--
+// Techno Loop - 16 bars evolving
+setcpm(132)
+
+// Punchy 808 kick with pitch sweep
+$: s("dsonic_akick").struct("x ~ ~ x ~ ~ x ~")
+  .bodyPitch(45).pitchEnvAmount("<24 28 32 28>".slow(4))
+  .clickLevel(0.3).driveAmt(0.2).gain(0.85)
+
+// Snare with snap
+$: s("dsonic_hsnare").struct("~ x ~ x")
+  .noiseAmt(0.55).noiseSnap(0.7).clipAmt(0.25).gain(0.7)
+
+// Hi-hats - evolving density
+$: s("dsonic_hhat").struct("<x*4 , x*8 , [x*8 x*16] , x*8>".slow(4))
+  .decay("<0.03 0.04 0.05 0.04>".slow(4))
+  .metalAmt(0.7).gain(0.45)
+
+// Open hat accent
+$: s("dsonic_ohat").struct("~ ~ ~ x").decay(0.15).gain(0.35)
+
+// Sub bass using Karplus (physical string bass)
+$: s("dsonic_karplus").struct("x ~ x ~")
+  .pitch("<55 55 44 55>".slow(4)).damping(0.4)
+  .decay(0.5).edge(0.2).gain(0.6)
+-->
+          </strudel-editor>
+        </div>
+        <div class="error-display" id="error-display">
+          <button class="error-dismiss" id="error-dismiss">&times;</button>
+          <div class="error-title">Error</div>
+          <div class="error-message" id="error-message"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Engine Preview -->
+  <section class="engines-preview">
+    <div class="engines-preview-inner">
+      <h2>Synthesis Engines</h2>
+      <p>Each engine offers deep parameter control for authentic drum synthesis</p>
+      <div class="engine-tags">
+        <a href="./engines/#analog-kick" class="engine-tag">Analog Kick <span>808/909</span></a>
+        <a href="./engines/#membrane" class="engine-tag">Dual Membrane <span>Physical</span></a>
+        <a href="./engines/#hybrid-snare" class="engine-tag">Hybrid Snare <span>Layered</span></a>
+        <a href="./engines/#clap" class="engine-tag">Clap <span>Multi-hit</span></a>
+        <a href="./engines/#hat" class="engine-tag">Hat <span>Metallic</span></a>
+        <a href="./engines/#cymbal" class="engine-tag">Cymbal <span>Complex</span></a>
+        <a href="./engines/#tom" class="engine-tag">Tom/Conga <span>Pitched</span></a>
+        <a href="./engines/#rim" class="engine-tag">Rim/Clave <span>Percussive</span></a>
+        <a href="./engines/#shaker" class="engine-tag">Shaker <span>Granular</span></a>
+        <a href="./engines/#fold" class="engine-tag">Fold/WT <span>Waveshaping</span></a>
+        <a href="./engines/#karplus" class="engine-tag">Karplus <span>String/Tube</span></a>
+        <a href="./engines/#fm" class="engine-tag">FM Perc <span>4-op FM</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <h2>Ready to create?</h2>
+    <p>Open the Studio to design your sounds visually, or dive into the Engines page to explore each synthesis algorithm in depth.</p>
+    <div class="hero-buttons">
+      <a href="./studio/" class="btn-primary">Launch Studio</a>
+      <a href="./reference/" class="btn-secondary">View Reference</a>
+    </div>
+  </section>
+
+  <footer>
+    <p>DSonic &mdash; Web Audio Drum Synthesis for <a href="https://strudel.cc" target="_blank">Strudel</a></p>
+  </footer>
+
+  <!-- Hero Waveform Animation -->
+  <script>
+    (function() {
+      const canvas = document.getElementById('hero-canvas');
+      const ctx = canvas.getContext('2d');
+      let animationId;
+      let time = 0;
+
+      function resize() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width * window.devicePixelRatio;
+        canvas.height = rect.height * window.devicePixelRatio;
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      }
+
+      function drawWave(yOffset, amplitude, frequency, phase, color, lineWidth) {
+        const width = canvas.width / window.devicePixelRatio;
+        const height = canvas.height / window.devicePixelRatio;
+
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lineWidth;
+
+        for (let x = 0; x < width; x++) {
+          const y = yOffset +
+            Math.sin((x * frequency) + phase) * amplitude +
+            Math.sin((x * frequency * 0.5) + phase * 1.3) * amplitude * 0.5 +
+            Math.sin((x * frequency * 2) + phase * 0.7) * amplitude * 0.25;
+
+          if (x === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.stroke();
+      }
+
+      function animate() {
+        const width = canvas.width / window.devicePixelRatio;
+        const height = canvas.height / window.devicePixelRatio;
+
+        ctx.clearRect(0, 0, width, height);
+
+        time += 0.008;
+
+        // Multiple overlapping waveforms for rich visual
+        drawWave(height * 0.3, 20, 0.008, time * 0.5, '#00ff88', 1.5);
+        drawWave(height * 0.4, 30, 0.006, time * 0.7 + 1, '#00ff88', 1);
+        drawWave(height * 0.5, 25, 0.01, time * 0.4 + 2, '#00ff88', 2);
+        drawWave(height * 0.6, 35, 0.005, time * 0.6 + 3, '#00ff88', 1);
+        drawWave(height * 0.7, 20, 0.012, time * 0.8 + 4, '#00ff88', 1.5);
+
+        animationId = requestAnimationFrame(animate);
+      }
+
+      resize();
+      window.addEventListener('resize', resize);
+      animate();
+    })();
+  </script>
+
+  <!-- Load DSonic and Strudel REPL as ES modules -->
+</body>
+</html>
