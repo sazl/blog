@@ -1,0 +1,2072 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Module 03: Tokenization – LLM From Scratch</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<meta name="mermaid-theme" content="neutral">
+<script src="../../site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="../../site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="../../site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
+
+
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">LLM From Scratch</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-modules" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Modules</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-modules">    
+        <li>
+    <a class="dropdown-item" href="../../modules/m01_tensors/lesson.html">
+ <span class="dropdown-text">01 Tensors</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../modules/m02_autograd/lesson.html">
+ <span class="dropdown-text">02 Autograd</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../modules/m03_tokenization/lesson.html">
+ <span class="dropdown-text">03 Tokenization</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../modules/m04_embeddings/lesson.html">
+ <span class="dropdown-text">04 Embeddings</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../modules/m05_attention/lesson.html">
+ <span class="dropdown-text">05 Attention</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../modules/m06_transformer/lesson.html">
+ <span class="dropdown-text">06 Transformer</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../modules/m07_training/lesson.html">
+ <span class="dropdown-text">07 Training</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../modules/m08_generation/lesson.html">
+ <span class="dropdown-text">08 Generation</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#intuition-learning-patterns-through-merging" id="toc-intuition-learning-patterns-through-merging" class="nav-link" data-scroll-target="#intuition-learning-patterns-through-merging">Intuition: Learning Patterns Through Merging</a></li>
+  <li><a href="#the-bpe-training-algorithm" id="toc-the-bpe-training-algorithm" class="nav-link" data-scroll-target="#the-bpe-training-algorithm">The BPE Training Algorithm</a></li>
+  <li><a href="#the-math" id="toc-the-math" class="nav-link" data-scroll-target="#the-math">The Math</a></li>
+  <li><a href="#encoding-new-text" id="toc-encoding-new-text" class="nav-link" data-scroll-target="#encoding-new-text">Encoding New Text</a></li>
+  <li><a href="#handling-unknown-words" id="toc-handling-unknown-words" class="nav-link" data-scroll-target="#handling-unknown-words">Handling Unknown Words</a></li>
+  <li><a href="#special-tokens" id="toc-special-tokens" class="nav-link" data-scroll-target="#special-tokens">Special Tokens</a></li>
+  <li><a href="#code-walkthrough" id="toc-code-walkthrough" class="nav-link" data-scroll-target="#code-walkthrough">Code Walkthrough</a>
+  <ul class="collapse">
+  <li><a href="#training-a-bpe-tokenizer" id="toc-training-a-bpe-tokenizer" class="nav-link" data-scroll-target="#training-a-bpe-tokenizer">Training a BPE Tokenizer</a></li>
+  <li><a href="#encoding-and-decoding" id="toc-encoding-and-decoding" class="nav-link" data-scroll-target="#encoding-and-decoding">Encoding and Decoding</a></li>
+  <li><a href="#training-on-python-code" id="toc-training-on-python-code" class="nav-link" data-scroll-target="#training-on-python-code">Training on Python Code</a></li>
+  <li><a href="#visualizing-tokenization" id="toc-visualizing-tokenization" class="nav-link" data-scroll-target="#visualizing-tokenization">Visualizing Tokenization</a></li>
+  <li><a href="#vocabulary-size-tradeoffs" id="toc-vocabulary-size-tradeoffs" class="nav-link" data-scroll-target="#vocabulary-size-tradeoffs">Vocabulary Size Tradeoffs</a></li>
+  <li><a href="#saving-and-loading" id="toc-saving-and-loading" class="nav-link" data-scroll-target="#saving-and-loading">Saving and Loading</a></li>
+  </ul></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises">Exercises</a>
+  <ul class="collapse">
+  <li><a href="#exercise-1-compression-efficiency" id="toc-exercise-1-compression-efficiency" class="nav-link" data-scroll-target="#exercise-1-compression-efficiency">Exercise 1: Compression Efficiency</a></li>
+  <li><a href="#exercise-2-analyze-the-first-merges" id="toc-exercise-2-analyze-the-first-merges" class="nav-link" data-scroll-target="#exercise-2-analyze-the-first-merges">Exercise 2: Analyze the First Merges</a></li>
+  <li><a href="#exercise-3-handle-unknown-characters" id="toc-exercise-3-handle-unknown-characters" class="nav-link" data-scroll-target="#exercise-3-handle-unknown-characters">Exercise 3: Handle Unknown Characters</a></li>
+  <li><a href="#exercise-4-whitespace-handling" id="toc-exercise-4-whitespace-handling" class="nav-link" data-scroll-target="#exercise-4-whitespace-handling">Exercise 4: Whitespace Handling</a></li>
+  </ul></li>
+  <li><a href="#tokenization-in-the-llm-pipeline" id="toc-tokenization-in-the-llm-pipeline" class="nav-link" data-scroll-target="#tokenization-in-the-llm-pipeline">Tokenization in the LLM Pipeline</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a>
+  <ul class="collapse">
+  <li><a href="#what-we-simplified" id="toc-what-we-simplified" class="nav-link" data-scroll-target="#what-we-simplified">What We Simplified</a></li>
+  <li><a href="#practical-implications" id="toc-practical-implications" class="nav-link" data-scroll-target="#practical-implications">Practical Implications</a></li>
+  </ul></li>
+  <li><a href="#whats-next" id="toc-whats-next" class="nav-link" data-scroll-target="#whats-next">What’s Next</a></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="lesson.ipynb" download="lesson.ipynb"><i class="bi bi-journal-code"></i>Jupyter</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">Module 03: Tokenization</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>Converting text into numbers. Before a language model can process text, we need to break it into tokens and map each token to a number.</p>
+<p><strong>Tokenization</strong> is how we convert raw text into a sequence of integers that the model can process. Modern LLMs use <strong>subword tokenization</strong> - they break text into pieces smaller than words but larger than characters.</p>
+<p>Why subword tokenization?</p>
+<ul>
+<li><strong>Word-level</strong>: Can’t handle new words (OOV problem), huge vocabulary needed (millions for multilingual)</li>
+<li><strong>Character-level</strong>: Sequences become 4-5x longer, attention cost explodes O(n^2), model learns spelling from scratch</li>
+<li><strong>Subword</strong>: Best of both worlds - handles new words via decomposition, reasonable sequence length</li>
+</ul>
+<p>The most common algorithm is <strong>BPE (Byte Pair Encoding)</strong>, originally invented for data compression in 1994 and adapted for NLP in 2016:</p>
+<ol type="1">
+<li>Start with individual characters as the initial vocabulary</li>
+<li>Count all adjacent token pairs in the training corpus</li>
+<li>Merge the most frequent pair into a new token</li>
+<li>Add the merged token to the vocabulary</li>
+<li>Repeat until vocabulary size reached</li>
+</ol>
+</section>
+<section id="intuition-learning-patterns-through-merging" class="level2">
+<h2 class="anchored" data-anchor-id="intuition-learning-patterns-through-merging">Intuition: Learning Patterns Through Merging</h2>
+<p>Think of BPE as compression that learns common patterns:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart TB
+    subgraph initial["Initial: Character Tokens"]
+        c1["'h'"] --- c2["'e'"] --- c3["'l'"] --- c4["'l'"] --- c5["'o'"]
+    end
+
+    subgraph merge1["After Merge 1: 'l'+'l' -&gt; 'll'"]
+        m1["'h'"] --- m2["'e'"] --- m3["'ll'"] --- m4["'o'"]
+    end
+
+    subgraph merge2["After Merge 2: 'h'+'e' -&gt; 'he'"]
+        n1["'he'"] --- n2["'ll'"] --- n3["'o'"]
+    end
+
+    subgraph final["After More Merges"]
+        f1["'hello'"]
+    end
+
+    initial --&gt; merge1 --&gt; merge2 --&gt; final
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<p>For code, BPE learns things like:</p>
+<ul>
+<li><code>def</code> (function definition with space)</li>
+<li><code>self.</code> (common in Python classes)</li>
+<li><code>return</code> (return statement)</li>
+<li><code></code> (4-space indent)</li>
+</ul>
+</section>
+<section id="the-bpe-training-algorithm" class="level2">
+<h2 class="anchored" data-anchor-id="the-bpe-training-algorithm">The BPE Training Algorithm</h2>
+<p>Here’s how BPE learns to tokenize:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart TB
+    subgraph training["BPE Training on 'low lower lowest'"]
+        start["Start with characters:&lt;br/&gt;l o w SPACE l o w e r SPACE l o w e s t"]
+
+        count1["Count pairs:&lt;br/&gt;('l','o'): 3, ('o','w'): 3, ('w','e'): 2..."]
+
+        merge1["Merge most frequent ('l','o'):&lt;br/&gt;lo w SPACE lo w e r SPACE lo w e s t"]
+
+        count2["Count pairs:&lt;br/&gt;('lo','w'): 3, ('w','e'): 2..."]
+
+        merge2["Merge ('lo','w'):&lt;br/&gt;low SPACE low e r SPACE low e s t"]
+
+        count3["Count pairs:&lt;br/&gt;('low','e'): 2..."]
+
+        merge3["Merge ('low','e'):&lt;br/&gt;low SPACE lowe r SPACE lowe s t"]
+
+        done["Continue until vocab size reached"]
+    end
+
+    start --&gt; count1 --&gt; merge1 --&gt; count2 --&gt; merge2 --&gt; count3 --&gt; merge3 --&gt; done
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</section>
+<section id="the-math" class="level2">
+<h2 class="anchored" data-anchor-id="the-math">The Math</h2>
+<p>BPE is simple - just counting and merging:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count pair frequencies</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pairs <span class="op">=</span> count_pairs(tokens)  <span class="co"># {'he': 50, 'el': 30, 'll': 80, ...}</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Find most frequent</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>best_pair <span class="op">=</span> <span class="bu">max</span>(pairs, key<span class="op">=</span>pairs.get)  <span class="co"># ('l', 'l')</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Merge everywhere</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>tokens <span class="op">=</span> merge(tokens, best_pair, <span class="st">'ll'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Vocabulary size</strong> is a hyperparameter:</p>
+<ul>
+<li>Too small: Sequences too long, less meaning per token</li>
+<li>Too large: Many rare tokens, harder to learn</li>
+<li>Typical: 8K-50K tokens for LLMs</li>
+</ul>
+</section>
+<section id="encoding-new-text" class="level2">
+<h2 class="anchored" data-anchor-id="encoding-new-text">Encoding New Text</h2>
+<p>Once trained, encoding applies merges in the order they were learned:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart LR
+    subgraph encoding["Encoding 'lower'"]
+        e1["Split to chars:&lt;br/&gt;['l','o','w','e','r']"]
+        e2["Apply merge 1 (l+o):&lt;br/&gt;['lo','w','e','r']"]
+        e3["Apply merge 2 (lo+w):&lt;br/&gt;['low','e','r']"]
+        e4["Apply merge 3 (low+e):&lt;br/&gt;['lowe','r']"]
+        e5["Apply merge 4 (lowe+r):&lt;br/&gt;['lower']"]
+        e6["Look up IDs:&lt;br/&gt;[15]"]
+    end
+
+    e1 --&gt; e2 --&gt; e3 --&gt; e4 --&gt; e5 --&gt; e6
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</section>
+<section id="handling-unknown-words" class="level2">
+<h2 class="anchored" data-anchor-id="handling-unknown-words">Handling Unknown Words</h2>
+<p>BPE can handle words it has never seen:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart TB
+    subgraph known["Known Word: 'lowest'"]
+        k1["'lowest' -&gt; [16]"]
+    end
+
+    subgraph unknown["Unknown Word: 'lows'"]
+        u1["Split: ['l','o','w','s']"]
+        u2["Apply merges: ['low','s']"]
+        u3["IDs: [13, 9]"]
+    end
+
+    subgraph why["Why BPE Works"]
+        w1["Common words -&gt; single tokens (efficient)"]
+        w2["Rare words -&gt; split into subwords (still encodable)"]
+        w3["Never out of vocabulary - falls back to characters"]
+    end
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</section>
+<section id="special-tokens" class="level2">
+<h2 class="anchored" data-anchor-id="special-tokens">Special Tokens</h2>
+<p>Before diving into code, let’s understand <strong>special tokens</strong> - reserved tokens with specific meanings in the LLM pipeline:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 33%">
+<col style="width: 40%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Token</th>
+<th>Purpose</th>
+<th>When Used</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>&lt;PAD&gt;</code> (ID 0)</td>
+<td>Padding</td>
+<td>Batch processing requires same-length sequences. Padding fills shorter sequences.</td>
+</tr>
+<tr class="even">
+<td><code>&lt;UNK&gt;</code> (ID 1)</td>
+<td>Unknown</td>
+<td>Characters not seen during training. Production tokenizers avoid this with byte-level BPE.</td>
+</tr>
+<tr class="odd">
+<td><code>&lt;BOS&gt;</code> (ID 2)</td>
+<td>Beginning of Sequence</td>
+<td>Signals the start of text. Helps model distinguish context boundaries.</td>
+</tr>
+<tr class="even">
+<td><code>&lt;EOS&gt;</code> (ID 3)</td>
+<td>End of Sequence</td>
+<td>Signals text completion. Model generates this to stop. Critical for generation.</td>
+</tr>
+</tbody>
+</table>
+<p>These tokens are reserved in the vocabulary before training begins, ensuring consistent IDs across all tokenizers.</p>
+</section>
+<section id="code-walkthrough" class="level2">
+<h2 class="anchored" data-anchor-id="code-walkthrough">Code Walkthrough</h2>
+<p>Let’s explore tokenization interactively:</p>
+<div id="64c43732" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Import our BPE tokenizer</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tokenizer <span class="im">import</span> BPETokenizer, SPECIAL_TOKENS</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Special tokens:"</span>, SPECIAL_TOKENS)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">These tokens are reserved at IDs 0-3 before training begins."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Special tokens: {'&lt;PAD&gt;': 0, '&lt;UNK&gt;': 1, '&lt;BOS&gt;': 2, '&lt;EOS&gt;': 3}
+
+These tokens are reserved at IDs 0-3 before training begins.</code></pre>
+</div>
+</div>
+<section id="training-a-bpe-tokenizer" class="level3">
+<h3 class="anchored" data-anchor-id="training-a-bpe-tokenizer">Training a BPE Tokenizer</h3>
+<p>The <code>BPETokenizer</code> class has key parameters:</p>
+<ul>
+<li><code>vocab_size</code>: Target vocabulary size (including special tokens)</li>
+<li><code>min_frequency</code>: Minimum times a pair must appear to be merged (default: 2)</li>
+<li><code>verbose</code>: Print detailed training progress</li>
+</ul>
+<div id="30703da9" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Simple text to train on</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>simple_text <span class="op">=</span> <span class="st">"ab cd ab cd ab cd ab cd "</span> <span class="op">*</span> <span class="dv">20</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create and train tokenizer</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># vocab_size includes the 4 special tokens, so effective learned tokens = vocab_size - 4</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>tokenizer <span class="op">=</span> BPETokenizer(vocab_size<span class="op">=</span><span class="dv">30</span>, verbose<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>stats <span class="op">=</span> tokenizer.train(simple_text, show_progress<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Vocab size: </span><span class="sc">{</span>stats[<span class="st">'vocab_size'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Merges learned: </span><span class="sc">{</span>stats[<span class="st">'num_merges'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Special tokens: </span><span class="sc">{</span>stats[<span class="st">'num_special_tokens'</span>]<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>============================================================
+BPE TOKENIZER TRAINING
+============================================================
+Text length: 480 characters
+Target vocab size: 30
+
+
+Training complete!
+  Final vocab size: 11
+  Merges learned: 2
+
+
+Vocab size: 11
+Merges learned: 2
+Special tokens: 4</code></pre>
+</div>
+</div>
+<div id="e2c0e770" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># See what patterns were learned</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Learned merges:"</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, ((a, b), merged) <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="bu">list</span>(tokenizer.merges.items())[:<span class="dv">10</span>]):</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">. </span><span class="sc">{</span><span class="bu">repr</span>(a)<span class="sc">}</span><span class="ss"> + </span><span class="sc">{</span><span class="bu">repr</span>(b)<span class="sc">}</span><span class="ss"> -&gt; </span><span class="sc">{</span><span class="bu">repr</span>(merged)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Learned merges:
+  1. 'a' + 'b' -&gt; 'ab'
+  2. 'c' + 'd' -&gt; 'cd'</code></pre>
+</div>
+</div>
+</section>
+<section id="encoding-and-decoding" class="level3">
+<h3 class="anchored" data-anchor-id="encoding-and-decoding">Encoding and Decoding</h3>
+<p>Encoding applies learned merges in the order they were learned. This is crucial - the merge order determines how text is split.</p>
+<div id="0565dd0d" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Encode some text</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>test_text <span class="op">=</span> <span class="st">"ab cd"</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>ids <span class="op">=</span> tokenizer.encode(test_text)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>tokens <span class="op">=</span> [tokenizer.id_to_token(i) <span class="cf">for</span> i <span class="kw">in</span> ids]</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Text: '</span><span class="sc">{</span>test_text<span class="sc">}</span><span class="ss">'"</span>)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Token IDs: </span><span class="sc">{</span>ids<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Tokens: </span><span class="sc">{</span>tokens<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Decode back</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>decoded <span class="op">=</span> tokenizer.decode(ids)</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Decoded: '</span><span class="sc">{</span>decoded<span class="sc">}</span><span class="ss">'"</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Round-trip successful: </span><span class="sc">{</span>test_text <span class="op">==</span> decoded<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Text: 'ab cd'
+Token IDs: [9, 4, 10]
+Tokens: ['ab', ' ', 'cd']
+Decoded: 'ab cd'
+Round-trip successful: True</code></pre>
+</div>
+</div>
+<div id="9b8ce55e" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># With special tokens (used during actual LLM training/inference)</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>ids_with_special <span class="op">=</span> tokenizer.encode(test_text, add_special_tokens<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">With special tokens: </span><span class="sc">{</span>ids_with_special<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Tokens: </span><span class="sc">{</span>[tokenizer.id_to_token(i) <span class="cf">for</span> i <span class="kw">in</span> ids_with_special]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Decoding skips special tokens by default</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>decoded <span class="op">=</span> tokenizer.decode(ids_with_special, skip_special_tokens<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Decoded (skip special): '</span><span class="sc">{</span>decoded<span class="sc">}</span><span class="ss">'"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+With special tokens: [2, 9, 4, 10, 3]
+Tokens: ['&lt;BOS&gt;', 'ab', ' ', 'cd', '&lt;EOS&gt;']
+Decoded (skip special): 'ab cd'</code></pre>
+</div>
+</div>
+</section>
+<section id="training-on-python-code" class="level3">
+<h3 class="anchored" data-anchor-id="training-on-python-code">Training on Python Code</h3>
+<div id="ec36c1da" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>python_code <span class="op">=</span> <span class="st">'''</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="st">def fibonacci(n):</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="st">    """Calculate the nth Fibonacci number."""</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="st">    if n &lt;= 1:</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="st">        return n</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="st">    return fibonacci(n - 1) + fibonacci(n - 2)</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="st">def factorial(n):</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="st">    """Calculate n factorial."""</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="st">    if n &lt;= 1:</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="st">        return 1</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="st">    return n * factorial(n - 1)</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="st">class Calculator:</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="st">    def __init__(self):</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="st">        self.result = 0</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="st">    def add(self, x):</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="st">        self.result += x</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a><span class="st">        return self</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="st">    def subtract(self, x):</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a><span class="st">        self.result -= x</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="st">        return self</span></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a><span class="st"># Main execution</span></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a><span class="st">if __name__ == "__main__":</span></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a><span class="st">    print(fibonacci(10))</span></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a><span class="st">    print(factorial(5))</span></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a><span class="st">'''</span></span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Training on </span><span class="sc">{</span><span class="bu">len</span>(python_code)<span class="sc">}</span><span class="ss"> characters of Python code"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Training on 562 characters of Python code</code></pre>
+</div>
+</div>
+<div id="cf3a73ac" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Train tokenizer on code</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>code_tokenizer <span class="op">=</span> BPETokenizer(vocab_size<span class="op">=</span><span class="dv">200</span>, verbose<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>stats <span class="op">=</span> code_tokenizer.train(python_code <span class="op">*</span> <span class="dv">3</span>, show_progress<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Final vocab size: </span><span class="sc">{</span>stats[<span class="st">'vocab_size'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Merges learned: </span><span class="sc">{</span>stats[<span class="st">'num_merges'</span>]<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>============================================================
+BPE TOKENIZER TRAINING
+============================================================
+Text length: 1,686 characters
+Target vocab size: 200
+
+  Merge 50: 'self.res' + 'ul' → 'self.resul' (count: 9, progress: 32.1%)
+  Merge 100: 'sub' + 't' → 'subt' (count: 3, progress: 64.1%)
+
+Training complete!
+  Final vocab size: 177
+  Merges learned: 133
+
+
+Final vocab size: 177
+Merges learned: 133</code></pre>
+</div>
+</div>
+<div id="6be052e0" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Look at what code patterns were learned</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Interesting tokens learned (longest first):"</span>)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">40</span>)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>interesting_patterns <span class="op">=</span> []</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> token, <span class="bu">id</span> <span class="kw">in</span> code_tokenizer.vocab.items():</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(token) <span class="op">&gt;=</span> <span class="dv">2</span> <span class="kw">and</span> <span class="kw">not</span> token.startswith(<span class="st">'&lt;'</span>):</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>        interesting_patterns.append((token, <span class="bu">id</span>))</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Sort by length (longer = more merged)</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>interesting_patterns.sort(key<span class="op">=</span><span class="kw">lambda</span> x: <span class="bu">len</span>(x[<span class="dv">0</span>]), reverse<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> token, <span class="bu">id</span> <span class="kw">in</span> interesting_patterns[:<span class="dv">15</span>]:</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span><span class="bu">id</span><span class="sc">:3d}</span><span class="ss">: </span><span class="sc">{</span><span class="bu">repr</span>(token)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Interesting tokens learned (longest first):
+========================================
+  172: 'print(fibonacci(10))'
+  176: 'print(factorial(5))'
+  171: 'print(fibonacci(10'
+  170: 'print(fibonacci(1'
+  175: 'print(factorial(5'
+  169: 'print(fibonacci('
+  174: 'print(factorial('
+  136: '__init__(self):'
+  168: 'print(fibonacci'
+  173: 'print(factorial'
+  146: 'subtract(self,'
+  110: 'fibonacci(n):'
+  122: 'factorial(n):'
+  123: 'factorial."""'
+  135: '__init__(self'</code></pre>
+</div>
+</div>
+</section>
+<section id="visualizing-tokenization" class="level3">
+<h3 class="anchored" data-anchor-id="visualizing-tokenization">Visualizing Tokenization</h3>
+<div id="6440cd3d" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> visualize_tokens(tokenizer, text):</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Show how text is split into tokens with colors."""</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    ids <span class="op">=</span> tokenizer.encode(text)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> [tokenizer.id_to_token(i) <span class="cf">for</span> i <span class="kw">in</span> ids]</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Original: </span><span class="sc">{</span><span class="bu">repr</span>(text)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Tokens (</span><span class="sc">{</span><span class="bu">len</span>(tokens)<span class="sc">}</span><span class="ss">): </span><span class="sc">{</span>tokens<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"IDs: </span><span class="sc">{</span>ids<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Compression: </span><span class="sc">{</span><span class="bu">len</span>(text)<span class="op">/</span><span class="bu">len</span>(ids)<span class="sc">:.2f}</span><span class="ss"> chars/token"</span>)</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>()</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Try different code patterns</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>patterns <span class="op">=</span> [</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"def fibonacci(n):"</span>,</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"self.result = 0"</span>,</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"return self"</span>,</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"    for i in range(10):"</span>,</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> pattern <span class="kw">in</span> patterns:</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>    visualize_tokens(code_tokenizer, pattern)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Original: 'def fibonacci(n):'
+Tokens (3): ['def', ' ', 'fibonacci(n):']
+IDs: [64, 5, 110]
+Compression: 5.67 chars/token
+
+Original: 'self.result = 0'
+Tokens (5): ['self.result', ' ', '=', ' ', '0']
+IDs: [94, 5, 21, 5, 15]
+Compression: 3.00 chars/token
+
+Original: 'return self'
+Tokens (3): ['return', ' ', 'self']
+IDs: [60, 5, 52]
+Compression: 3.67 chars/token
+
+Original: '    for i in range(10):'
+Tokens (18): ['    ', 'f', 'o', 'r', ' ', 'i', ' ', 'in', ' ', 'r', 'a', 'n', '&lt;UNK&gt;', 'e', '(', '1', '0', '):']
+IDs: [45, 31, 37, 39, 5, 33, 5, 88, 5, 39, 26, 36, 1, 30, 8, 16, 15, 71]
+Compression: 1.28 chars/token
+</code></pre>
+</div>
+</div>
+</section>
+<section id="vocabulary-size-tradeoffs" class="level3">
+<h3 class="anchored" data-anchor-id="vocabulary-size-tradeoffs">Vocabulary Size Tradeoffs</h3>
+<p>Vocabulary size is one of the most important hyperparameters in tokenization:</p>
+<p><strong>Larger vocabulary:</strong> - (+) Shorter sequences = faster training, more context in fixed window - (+) Common words as single tokens = better semantic units - (-) Larger embedding table = more parameters, more memory - (-) Rare tokens get few training examples = poor representations</p>
+<p><strong>Smaller vocabulary:</strong> - (+) Smaller model, faster embedding lookups - (+) Every token well-trained on many examples - (-) Longer sequences = slower training, less context - (-) Words split into less meaningful pieces</p>
+<div id="bd0c3ec6" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>test_text <span class="op">=</span> <span class="st">"def calculate_fibonacci(number):</span><span class="ch">\n</span><span class="st">    return fibonacci(number)"</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>vocab_sizes <span class="op">=</span> [<span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">200</span>, <span class="dv">500</span>]</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Text: </span><span class="sc">{</span><span class="bu">repr</span>(test_text)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Text length: </span><span class="sc">{</span><span class="bu">len</span>(test_text)<span class="sc">}</span><span class="ss"> characters"</span>)</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> vocab_size <span class="kw">in</span> vocab_sizes:</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>    tok <span class="op">=</span> BPETokenizer(vocab_size<span class="op">=</span>vocab_size, verbose<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>    tok.train(python_code <span class="op">*</span> <span class="dv">5</span>, show_progress<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>    ids <span class="op">=</span> tok.encode(test_text)</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> [tok.id_to_token(i) <span class="cf">for</span> i <span class="kw">in</span> ids]</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Vocab size </span><span class="sc">{</span>vocab_size<span class="sc">}</span><span class="ss">:"</span>)</span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Tokens: </span><span class="sc">{</span><span class="bu">len</span>(ids)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Ratio: </span><span class="sc">{</span><span class="bu">len</span>(test_text)<span class="op">/</span><span class="bu">len</span>(ids)<span class="sc">:.1f}</span><span class="ss"> chars/token"</span>)</span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Sample: </span><span class="sc">{</span>[tok.id_to_token(i) <span class="cf">for</span> i <span class="kw">in</span> ids[:<span class="dv">5</span>]]<span class="sc">}</span><span class="ss">..."</span>)</span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Text: 'def calculate_fibonacci(number):\n    return fibonacci(number)'
+Text length: 61 characters
+
+Vocab size 50:
+  Tokens: 54
+  Ratio: 1.1 chars/token
+  Sample: ['d', 'e', 'f', ' ', 'c']...
+
+Vocab size 100:
+  Tokens: 27
+  Ratio: 2.3 chars/token
+  Sample: ['def', ' ', 'c', 'al', 'c']...
+
+Vocab size 200:
+  Tokens: 27
+  Ratio: 2.3 chars/token
+  Sample: ['def', ' ', 'c', 'al', 'c']...
+
+Vocab size 500:
+  Tokens: 27
+  Ratio: 2.3 chars/token
+  Sample: ['def', ' ', 'c', 'al', 'c']...
+</code></pre>
+</div>
+</div>
+<p><strong>Real-world vocabulary sizes:</strong> - GPT-2: 50,257 tokens - GPT-4: ~100,000 tokens - Llama 2: 32,000 tokens - Claude: ~100,000 tokens</p>
+</section>
+<section id="saving-and-loading" class="level3">
+<h3 class="anchored" data-anchor-id="saving-and-loading">Saving and Loading</h3>
+<div id="a33c6303" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tempfile</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Save tokenizer</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>save_path <span class="op">=</span> tempfile.mktemp(suffix<span class="op">=</span><span class="st">'.json'</span>)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>code_tokenizer.save(save_path)</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Load it back</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>loaded <span class="op">=</span> BPETokenizer.load(save_path)</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Verify it works the same</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>test <span class="op">=</span> <span class="st">"def test():"</span></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>original_ids <span class="op">=</span> code_tokenizer.encode(test)</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>loaded_ids <span class="op">=</span> loaded.encode(test)</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Original encoding: </span><span class="sc">{</span>original_ids<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Loaded encoding:   </span><span class="sc">{</span>loaded_ids<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Match: </span><span class="sc">{</span>original_ids <span class="op">==</span> loaded_ids<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Cleanup</span></span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>os.unlink(save_path)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Tokenizer saved to /var/folders/hl/bw75m5hd5xvfyx8j9qd71vjw0000gn/T/tmp0ppv2aq7.json
+Tokenizer loaded from /var/folders/hl/bw75m5hd5xvfyx8j9qd71vjw0000gn/T/tmp0ppv2aq7.json
+  Vocab size: 177
+
+Original encoding: [64, 5, 41, 30, 40, 41, 8, 71]
+Loaded encoding:   [64, 5, 41, 30, 40, 41, 8, 71]
+Match: True</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="exercises" class="level2">
+<h2 class="anchored" data-anchor-id="exercises">Exercises</h2>
+<section id="exercise-1-compression-efficiency" class="level3">
+<h3 class="anchored" data-anchor-id="exercise-1-compression-efficiency">Exercise 1: Compression Efficiency</h3>
+<p>BPE achieves better compression on repetitive text. This matters because better compression = shorter sequences = more context in the model’s window.</p>
+<div id="d68f4d79" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Train on repetitive vs varied text and compare compression</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>texts <span class="op">=</span> {</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"repetitive"</span>: <span class="st">"the the the "</span> <span class="op">*</span> <span class="dv">100</span>,</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"varied"</span>: <span class="st">" "</span>.join([<span class="ss">f"word</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">"</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">100</span>)]),</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"code"</span>: python_code,</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Compression comparison:"</span>)</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">40</span>)</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name, text <span class="kw">in</span> texts.items():</span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>    tok <span class="op">=</span> BPETokenizer(vocab_size<span class="op">=</span><span class="dv">200</span>, verbose<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>    tok.train(text, show_progress<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>    ids <span class="op">=</span> tok.encode(text)</span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>    ratio <span class="op">=</span> <span class="bu">len</span>(text) <span class="op">/</span> <span class="bu">len</span>(ids)</span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>name<span class="sc">:12s}</span><span class="ss">: </span><span class="sc">{</span>ratio<span class="sc">:.2f}</span><span class="ss"> chars/token"</span>)</span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Note: Repetitive text compresses best because BPE learns"</span>)</span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"common patterns. Code has structure but more variety."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Compression comparison:
+========================================
+repetitive  : 2.00 chars/token
+varied      : 2.38 chars/token
+code        : 2.70 chars/token
+
+Note: Repetitive text compresses best because BPE learns
+common patterns. Code has structure but more variety.</code></pre>
+</div>
+</div>
+</section>
+<section id="exercise-2-analyze-the-first-merges" class="level3">
+<h3 class="anchored" data-anchor-id="exercise-2-analyze-the-first-merges">Exercise 2: Analyze the First Merges</h3>
+<p>The first merges reveal the most frequent patterns in your data. For English text, you’ll often see common letter pairs like ‘th’, ‘he’, ‘in’.</p>
+<div id="306d9f0b" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># What patterns are learned first?</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>sample_text <span class="op">=</span> <span class="st">"hello world hello world hello world "</span> <span class="op">*</span> <span class="dv">10</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>tok <span class="op">=</span> BPETokenizer(vocab_size<span class="op">=</span><span class="dv">50</span>, verbose<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>tok.train(sample_text, show_progress<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"First 10 merges (most frequent patterns):"</span>)</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, ((a, b), merged) <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="bu">list</span>(tok.merges.items())[:<span class="dv">10</span>]):</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">. '</span><span class="sc">{</span>a<span class="sc">}</span><span class="ss">' + '</span><span class="sc">{</span>b<span class="sc">}</span><span class="ss">' = '</span><span class="sc">{</span>merged<span class="sc">}</span><span class="ss">'"</span>)</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Notice: Common substrings merge first, eventually"</span>)</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"forming complete words like 'hello' and 'world'."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>First 10 merges (most frequent patterns):
+  1. 'h' + 'e' = 'he'
+  2. 'he' + 'l' = 'hel'
+  3. 'hel' + 'l' = 'hell'
+  4. 'hell' + 'o' = 'hello'
+  5. 'w' + 'o' = 'wo'
+  6. 'wo' + 'r' = 'wor'
+  7. 'wor' + 'l' = 'worl'
+  8. 'worl' + 'd' = 'world'
+
+Notice: Common substrings merge first, eventually
+forming complete words like 'hello' and 'world'.</code></pre>
+</div>
+</div>
+</section>
+<section id="exercise-3-handle-unknown-characters" class="level3">
+<h3 class="anchored" data-anchor-id="exercise-3-handle-unknown-characters">Exercise 3: Handle Unknown Characters</h3>
+<p>Our simple tokenizer can only encode characters it saw during training. Characters not in the vocabulary become <code>&lt;UNK&gt;</code> tokens.</p>
+<div id="c683d3b5" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># What happens with characters not in training?</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>tokenizer <span class="op">=</span> BPETokenizer(vocab_size<span class="op">=</span><span class="dv">50</span>, verbose<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>tokenizer.train(<span class="st">"hello world"</span>, show_progress<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Try encoding text with emoji</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>test <span class="op">=</span> <span class="st">"hello world"</span>  <span class="co"># Safe text</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>    ids <span class="op">=</span> tokenizer.encode(test)</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"'</span><span class="sc">{</span>test<span class="sc">}</span><span class="ss">' -&gt; </span><span class="sc">{</span>ids<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Decoded: '</span><span class="sc">{</span>tokenizer<span class="sc">.</span>decode(ids)<span class="sc">}</span><span class="ss">'"</span>)</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Now try with a character not in training</span></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>test2 <span class="op">=</span> <span class="st">"hello 123"</span></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>ids <span class="op">=</span> tokenizer.encode(test2)</span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>tokens <span class="op">=</span> [tokenizer.id_to_token(i) <span class="cf">for</span> i <span class="kw">in</span> ids]</span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">'</span><span class="sc">{</span>test2<span class="sc">}</span><span class="ss">' -&gt; </span><span class="sc">{</span>ids<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Tokens: </span><span class="sc">{</span>tokens<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Notice: '1', '2', '3' become &lt;UNK&gt; (ID 1) because they"</span>)</span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"weren't in the training data."</span>)</span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">This is why production tokenizers use BYTE-LEVEL BPE:"</span>)</span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"- Operate on UTF-8 bytes (0-255) instead of Unicode characters"</span>)</span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"- Any byte sequence can be represented -&gt; no UNK tokens"</span>)</span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"- tiktoken and SentencePiece both use this approach"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>'hello world' -&gt; [7, 6, 8, 8, 9, 4, 11, 9, 10, 8, 5]
+Decoded: 'hello world'
+
+'hello 123' -&gt; [7, 6, 8, 8, 9, 4, 1, 1, 1]
+Tokens: ['h', 'e', 'l', 'l', 'o', ' ', '&lt;UNK&gt;', '&lt;UNK&gt;', '&lt;UNK&gt;']
+
+Notice: '1', '2', '3' become &lt;UNK&gt; (ID 1) because they
+weren't in the training data.
+
+This is why production tokenizers use BYTE-LEVEL BPE:
+- Operate on UTF-8 bytes (0-255) instead of Unicode characters
+- Any byte sequence can be represented -&gt; no UNK tokens
+- tiktoken and SentencePiece both use this approach</code></pre>
+</div>
+</div>
+</section>
+<section id="exercise-4-whitespace-handling" class="level3">
+<h3 class="anchored" data-anchor-id="exercise-4-whitespace-handling">Exercise 4: Whitespace Handling</h3>
+<p>Whitespace is tricky in tokenization. Our tokenizer preserves it, but notice how spaces can be part of tokens.</p>
+<div id="d3f57cda" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Whitespace is significant in tokenization</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>code_tok <span class="op">=</span> BPETokenizer(vocab_size<span class="op">=</span><span class="dv">100</span>, verbose<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>code_tok.train(<span class="st">"def foo():</span><span class="ch">\n</span><span class="st">    return 1</span><span class="ch">\n</span><span class="st">def bar():</span><span class="ch">\n</span><span class="st">    return 2"</span>, show_progress<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="co"># See how indentation is tokenized</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>samples <span class="op">=</span> [</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"def foo():"</span>,</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"    return"</span>,  <span class="co"># 4 spaces</span></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"        x"</span>,   <span class="co"># 8 spaces</span></span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> sample <span class="kw">in</span> samples:</span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>    ids <span class="op">=</span> code_tok.encode(sample)</span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> [code_tok.id_to_token(i) <span class="cf">for</span> i <span class="kw">in</span> ids]</span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="bu">repr</span>(sample)<span class="sc">:20s}</span><span class="ss"> -&gt; </span><span class="sc">{</span>tokens<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">In production tokenizers, leading spaces often attach to"</span>)</span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"the following word: ' hello' is one token, not ' ' + 'hello'"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>'def foo():'         -&gt; ['def', ' ', 'f', 'o', 'o', '():']
+'    return'         -&gt; ['  ', '  ', 'return']
+'        x'          -&gt; ['  ', '  ', '  ', '  ', '&lt;UNK&gt;']
+
+In production tokenizers, leading spaces often attach to
+the following word: ' hello' is one token, not ' ' + 'hello'</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="tokenization-in-the-llm-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="tokenization-in-the-llm-pipeline">Tokenization in the LLM Pipeline</h2>
+<p>Here’s where tokenization fits in the full pipeline:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart LR
+    subgraph input["Input"]
+        text["Raw Text&lt;br/&gt;'def hello():'"]
+    end
+
+    subgraph tokenize["Tokenization"]
+        split["Split into tokens&lt;br/&gt;['def', ' ', 'hello', '(', ')', ':']"]
+        lookup["Look up IDs&lt;br/&gt;[42, 5, 128, 8, 9, 12]"]
+    end
+
+    subgraph model["Model"]
+        embed["Embeddings&lt;br/&gt;(Module 04)"]
+        transform["Transformer&lt;br/&gt;(Module 06)"]
+    end
+
+    subgraph output["Output"]
+        decode["Decode IDs&lt;br/&gt;back to text"]
+    end
+
+    text --&gt; split --&gt; lookup --&gt; embed --&gt; transform --&gt; decode
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<p>Key takeaways:</p>
+<ol type="1">
+<li><strong>BPE learns subword units</strong> by iteratively merging the most frequent adjacent token pairs</li>
+<li><strong>Vocabulary size</strong> is a tradeoff: larger = shorter sequences but more parameters and sparse token usage</li>
+<li><strong>Special tokens</strong> (BOS, EOS, PAD, UNK) serve critical roles in the LLM pipeline</li>
+<li><strong>Code patterns</strong> emerge naturally (def, self., return, indentation) when trained on code</li>
+<li><strong>Round-trip guarantee</strong>: encode -&gt; decode should perfectly reconstruct the original text</li>
+<li><strong>Production tokenizers</strong> use byte-level BPE to handle any Unicode character without UNK tokens</li>
+</ol>
+<section id="what-we-simplified" class="level3">
+<h3 class="anchored" data-anchor-id="what-we-simplified">What We Simplified</h3>
+<p>Our implementation differs from production tokenizers in several ways:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 40%">
+<col style="width: 59%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Our Tokenizer</th>
+<th>Production Tokenizers</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Character-level BPE</td>
+<td>Byte-level BPE (handles any UTF-8)</td>
+</tr>
+<tr class="even">
+<td>Python dict lookups</td>
+<td>Optimized Rust/C++ (tiktoken is 10x+ faster)</td>
+</tr>
+<tr class="odd">
+<td>No regex pre-tokenization</td>
+<td>GPT uses regex to split contractions, numbers specially</td>
+</tr>
+<tr class="even">
+<td>Simple word splitting</td>
+<td>Careful handling of whitespace, punctuation</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="practical-implications" class="level3">
+<h3 class="anchored" data-anchor-id="practical-implications">Practical Implications</h3>
+<ul>
+<li><strong>Context length</strong>: A 4096-token context window holds varying amounts of text depending on tokenization efficiency</li>
+<li><strong>Cost</strong>: API pricing is per-token, so tokenization directly affects cost</li>
+<li><strong>Multilingual</strong>: Tokenizers trained on English use more tokens for other languages (2-3x for some)</li>
+<li><strong>Code vs prose</strong>: Code often tokenizes inefficiently (many single-character tokens for syntax)</li>
+</ul>
+</section>
+</section>
+<section id="whats-next" class="level2">
+<h2 class="anchored" data-anchor-id="whats-next">What’s Next</h2>
+<p>In <a href="../../modules/m04_embeddings/lesson.html">Module 04: Embeddings</a>, we’ll learn how to convert token IDs into dense vectors that capture meaning. Each token becomes a learnable vector in high-dimensional space.</p>
+
+
+<!-- -->
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Module 03: Tokenization"</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="co">  html:</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="co">    code-fold: false</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="co">    toc: true</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="co">    mermaid:</span></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="co">      theme: neutral</span></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="co">  ipynb: default</span></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a><span class="an">jupyter:</span><span class="co"> python3</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a><span class="fu">## Introduction</span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>Converting text into numbers. Before a language model can process text, we need to break it into tokens and map each token to a number.</span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>**Tokenization** is how we convert raw text into a sequence of integers that the model can process. Modern LLMs use **subword tokenization** - they break text into pieces smaller than words but larger than characters.</span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a>Why subword tokenization?</span>
+<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Word-level**: Can't handle new words (OOV problem), huge vocabulary needed (millions for multilingual)</span>
+<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Character-level**: Sequences become 4-5x longer, attention cost explodes O(n^2), model learns spelling from scratch</span>
+<span id="cb32-23"><a href="#cb32-23" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Subword**: Best of both worlds - handles new words via decomposition, reasonable sequence length</span>
+<span id="cb32-24"><a href="#cb32-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-25"><a href="#cb32-25" aria-hidden="true" tabindex="-1"></a>The most common algorithm is **BPE (Byte Pair Encoding)**, originally invented for data compression in 1994 and adapted for NLP in 2016:</span>
+<span id="cb32-26"><a href="#cb32-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-27"><a href="#cb32-27" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Start with individual characters as the initial vocabulary</span>
+<span id="cb32-28"><a href="#cb32-28" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Count all adjacent token pairs in the training corpus</span>
+<span id="cb32-29"><a href="#cb32-29" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Merge the most frequent pair into a new token</span>
+<span id="cb32-30"><a href="#cb32-30" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>Add the merged token to the vocabulary</span>
+<span id="cb32-31"><a href="#cb32-31" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>Repeat until vocabulary size reached</span>
+<span id="cb32-32"><a href="#cb32-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-33"><a href="#cb32-33" aria-hidden="true" tabindex="-1"></a><span class="fu">## Intuition: Learning Patterns Through Merging</span></span>
+<span id="cb32-34"><a href="#cb32-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-35"><a href="#cb32-35" aria-hidden="true" tabindex="-1"></a>Think of BPE as compression that learns common patterns:</span>
+<span id="cb32-36"><a href="#cb32-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-39"><a href="#cb32-39" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
+<span id="cb32-40"><a href="#cb32-40" aria-hidden="true" tabindex="-1"></a>flowchart TB</span>
+<span id="cb32-41"><a href="#cb32-41" aria-hidden="true" tabindex="-1"></a>    subgraph initial[<span class="ot">"</span><span class="st">Initial: Character Tokens</span><span class="ot">"</span>]</span>
+<span id="cb32-42"><a href="#cb32-42" aria-hidden="true" tabindex="-1"></a>        c1[<span class="ot">"</span><span class="st">'h'</span><span class="ot">"</span>] --- c2[<span class="ot">"</span><span class="st">'e'</span><span class="ot">"</span>] --- c3[<span class="ot">"</span><span class="st">'l'</span><span class="ot">"</span>] --- c4[<span class="ot">"</span><span class="st">'l'</span><span class="ot">"</span>] --- c5[<span class="ot">"</span><span class="st">'o'</span><span class="ot">"</span>]</span>
+<span id="cb32-43"><a href="#cb32-43" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb32-44"><a href="#cb32-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-45"><a href="#cb32-45" aria-hidden="true" tabindex="-1"></a>    subgraph merge1[<span class="ot">"</span><span class="st">After Merge 1: 'l'+'l' -&gt; 'll'</span><span class="ot">"</span>]</span>
+<span id="cb32-46"><a href="#cb32-46" aria-hidden="true" tabindex="-1"></a>        m1[<span class="ot">"</span><span class="st">'h'</span><span class="ot">"</span>] --- m2[<span class="ot">"</span><span class="st">'e'</span><span class="ot">"</span>] --- m3[<span class="ot">"</span><span class="st">'ll'</span><span class="ot">"</span>] --- m4[<span class="ot">"</span><span class="st">'o'</span><span class="ot">"</span>]</span>
+<span id="cb32-47"><a href="#cb32-47" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb32-48"><a href="#cb32-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-49"><a href="#cb32-49" aria-hidden="true" tabindex="-1"></a>    subgraph merge2[<span class="ot">"</span><span class="st">After Merge 2: 'h'+'e' -&gt; 'he'</span><span class="ot">"</span>]</span>
+<span id="cb32-50"><a href="#cb32-50" aria-hidden="true" tabindex="-1"></a>        n1[<span class="ot">"</span><span class="st">'he'</span><span class="ot">"</span>] --- n2[<span class="ot">"</span><span class="st">'ll'</span><span class="ot">"</span>] --- n3[<span class="ot">"</span><span class="st">'o'</span><span class="ot">"</span>]</span>
+<span id="cb32-51"><a href="#cb32-51" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb32-52"><a href="#cb32-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-53"><a href="#cb32-53" aria-hidden="true" tabindex="-1"></a>    subgraph final[<span class="ot">"</span><span class="st">After More Merges</span><span class="ot">"</span>]</span>
+<span id="cb32-54"><a href="#cb32-54" aria-hidden="true" tabindex="-1"></a>        f1[<span class="ot">"</span><span class="st">'hello'</span><span class="ot">"</span>]</span>
+<span id="cb32-55"><a href="#cb32-55" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb32-56"><a href="#cb32-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-57"><a href="#cb32-57" aria-hidden="true" tabindex="-1"></a>    initial --&gt; merge1 --&gt; merge2 --&gt; final</span>
+<span id="cb32-58"><a href="#cb32-58" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-59"><a href="#cb32-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-60"><a href="#cb32-60" aria-hidden="true" tabindex="-1"></a>For code, BPE learns things like:</span>
+<span id="cb32-61"><a href="#cb32-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-62"><a href="#cb32-62" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`def `</span> (function definition with space)</span>
+<span id="cb32-63"><a href="#cb32-63" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`self.`</span> (common in Python classes)</span>
+<span id="cb32-64"><a href="#cb32-64" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`return `</span> (return statement)</span>
+<span id="cb32-65"><a href="#cb32-65" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`    `</span> (4-space indent)</span>
+<span id="cb32-66"><a href="#cb32-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-67"><a href="#cb32-67" aria-hidden="true" tabindex="-1"></a><span class="fu">## The BPE Training Algorithm</span></span>
+<span id="cb32-68"><a href="#cb32-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-69"><a href="#cb32-69" aria-hidden="true" tabindex="-1"></a>Here's how BPE learns to tokenize:</span>
+<span id="cb32-70"><a href="#cb32-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-73"><a href="#cb32-73" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
+<span id="cb32-74"><a href="#cb32-74" aria-hidden="true" tabindex="-1"></a>flowchart TB</span>
+<span id="cb32-75"><a href="#cb32-75" aria-hidden="true" tabindex="-1"></a>    subgraph training[<span class="ot">"</span><span class="st">BPE Training on 'low lower lowest'</span><span class="ot">"</span>]</span>
+<span id="cb32-76"><a href="#cb32-76" aria-hidden="true" tabindex="-1"></a>        start[<span class="ot">"</span><span class="st">Start with characters:&lt;br/&gt;l o w SPACE l o w e r SPACE l o w e s t</span><span class="ot">"</span>]</span>
+<span id="cb32-77"><a href="#cb32-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-78"><a href="#cb32-78" aria-hidden="true" tabindex="-1"></a>        count1[<span class="ot">"</span><span class="st">Count pairs:&lt;br/&gt;('l','o'): 3, ('o','w'): 3, ('w','e'): 2...</span><span class="ot">"</span>]</span>
+<span id="cb32-79"><a href="#cb32-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-80"><a href="#cb32-80" aria-hidden="true" tabindex="-1"></a>        merge1[<span class="ot">"</span><span class="st">Merge most frequent ('l','o'):&lt;br/&gt;lo w SPACE lo w e r SPACE lo w e s t</span><span class="ot">"</span>]</span>
+<span id="cb32-81"><a href="#cb32-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-82"><a href="#cb32-82" aria-hidden="true" tabindex="-1"></a>        count2[<span class="ot">"</span><span class="st">Count pairs:&lt;br/&gt;('lo','w'): 3, ('w','e'): 2...</span><span class="ot">"</span>]</span>
+<span id="cb32-83"><a href="#cb32-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-84"><a href="#cb32-84" aria-hidden="true" tabindex="-1"></a>        merge2[<span class="ot">"</span><span class="st">Merge ('lo','w'):&lt;br/&gt;low SPACE low e r SPACE low e s t</span><span class="ot">"</span>]</span>
+<span id="cb32-85"><a href="#cb32-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-86"><a href="#cb32-86" aria-hidden="true" tabindex="-1"></a>        count3[<span class="ot">"</span><span class="st">Count pairs:&lt;br/&gt;('low','e'): 2...</span><span class="ot">"</span>]</span>
+<span id="cb32-87"><a href="#cb32-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-88"><a href="#cb32-88" aria-hidden="true" tabindex="-1"></a>        merge3[<span class="ot">"</span><span class="st">Merge ('low','e'):&lt;br/&gt;low SPACE lowe r SPACE lowe s t</span><span class="ot">"</span>]</span>
+<span id="cb32-89"><a href="#cb32-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-90"><a href="#cb32-90" aria-hidden="true" tabindex="-1"></a>        done[<span class="ot">"</span><span class="st">Continue until vocab size reached</span><span class="ot">"</span>]</span>
+<span id="cb32-91"><a href="#cb32-91" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb32-92"><a href="#cb32-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-93"><a href="#cb32-93" aria-hidden="true" tabindex="-1"></a>    start --&gt; count1 --&gt; merge1 --&gt; count2 --&gt; merge2 --&gt; count3 --&gt; merge3 --&gt; done</span>
+<span id="cb32-94"><a href="#cb32-94" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-95"><a href="#cb32-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-96"><a href="#cb32-96" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Math</span></span>
+<span id="cb32-97"><a href="#cb32-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-98"><a href="#cb32-98" aria-hidden="true" tabindex="-1"></a>BPE is simple - just counting and merging:</span>
+<span id="cb32-99"><a href="#cb32-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-100"><a href="#cb32-100" aria-hidden="true" tabindex="-1"></a><span class="in">```python</span></span>
+<span id="cb32-101"><a href="#cb32-101" aria-hidden="true" tabindex="-1"></a><span class="co"># Count pair frequencies</span></span>
+<span id="cb32-102"><a href="#cb32-102" aria-hidden="true" tabindex="-1"></a>pairs <span class="op">=</span> count_pairs(tokens)  <span class="co"># {'he': 50, 'el': 30, 'll': 80, ...}</span></span>
+<span id="cb32-103"><a href="#cb32-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-104"><a href="#cb32-104" aria-hidden="true" tabindex="-1"></a><span class="co"># Find most frequent</span></span>
+<span id="cb32-105"><a href="#cb32-105" aria-hidden="true" tabindex="-1"></a>best_pair <span class="op">=</span> <span class="bu">max</span>(pairs, key<span class="op">=</span>pairs.get)  <span class="co"># ('l', 'l')</span></span>
+<span id="cb32-106"><a href="#cb32-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-107"><a href="#cb32-107" aria-hidden="true" tabindex="-1"></a><span class="co"># Merge everywhere</span></span>
+<span id="cb32-108"><a href="#cb32-108" aria-hidden="true" tabindex="-1"></a>tokens <span class="op">=</span> merge(tokens, best_pair, <span class="st">'ll'</span>)</span>
+<span id="cb32-109"><a href="#cb32-109" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-110"><a href="#cb32-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-111"><a href="#cb32-111" aria-hidden="true" tabindex="-1"></a>**Vocabulary size** is a hyperparameter:</span>
+<span id="cb32-112"><a href="#cb32-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-113"><a href="#cb32-113" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Too small: Sequences too long, less meaning per token</span>
+<span id="cb32-114"><a href="#cb32-114" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Too large: Many rare tokens, harder to learn</span>
+<span id="cb32-115"><a href="#cb32-115" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Typical: 8K-50K tokens for LLMs</span>
+<span id="cb32-116"><a href="#cb32-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-117"><a href="#cb32-117" aria-hidden="true" tabindex="-1"></a><span class="fu">## Encoding New Text</span></span>
+<span id="cb32-118"><a href="#cb32-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-119"><a href="#cb32-119" aria-hidden="true" tabindex="-1"></a>Once trained, encoding applies merges in the order they were learned:</span>
+<span id="cb32-120"><a href="#cb32-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-123"><a href="#cb32-123" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
+<span id="cb32-124"><a href="#cb32-124" aria-hidden="true" tabindex="-1"></a>flowchart LR</span>
+<span id="cb32-125"><a href="#cb32-125" aria-hidden="true" tabindex="-1"></a>    subgraph encoding[<span class="ot">"</span><span class="st">Encoding 'lower'</span><span class="ot">"</span>]</span>
+<span id="cb32-126"><a href="#cb32-126" aria-hidden="true" tabindex="-1"></a>        e1[<span class="ot">"</span><span class="st">Split to chars:&lt;br/&gt;['l','o','w','e','r']</span><span class="ot">"</span>]</span>
+<span id="cb32-127"><a href="#cb32-127" aria-hidden="true" tabindex="-1"></a>        e2[<span class="ot">"</span><span class="st">Apply merge 1 (l+o):&lt;br/&gt;['lo','w','e','r']</span><span class="ot">"</span>]</span>
+<span id="cb32-128"><a href="#cb32-128" aria-hidden="true" tabindex="-1"></a>        e3[<span class="ot">"</span><span class="st">Apply merge 2 (lo+w):&lt;br/&gt;['low','e','r']</span><span class="ot">"</span>]</span>
+<span id="cb32-129"><a href="#cb32-129" aria-hidden="true" tabindex="-1"></a>        e4[<span class="ot">"</span><span class="st">Apply merge 3 (low+e):&lt;br/&gt;['lowe','r']</span><span class="ot">"</span>]</span>
+<span id="cb32-130"><a href="#cb32-130" aria-hidden="true" tabindex="-1"></a>        e5[<span class="ot">"</span><span class="st">Apply merge 4 (lowe+r):&lt;br/&gt;['lower']</span><span class="ot">"</span>]</span>
+<span id="cb32-131"><a href="#cb32-131" aria-hidden="true" tabindex="-1"></a>        e6[<span class="ot">"</span><span class="st">Look up IDs:&lt;br/&gt;[15]</span><span class="ot">"</span>]</span>
+<span id="cb32-132"><a href="#cb32-132" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb32-133"><a href="#cb32-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-134"><a href="#cb32-134" aria-hidden="true" tabindex="-1"></a>    e1 --&gt; e2 --&gt; e3 --&gt; e4 --&gt; e5 --&gt; e6</span>
+<span id="cb32-135"><a href="#cb32-135" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-136"><a href="#cb32-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-137"><a href="#cb32-137" aria-hidden="true" tabindex="-1"></a><span class="fu">## Handling Unknown Words</span></span>
+<span id="cb32-138"><a href="#cb32-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-139"><a href="#cb32-139" aria-hidden="true" tabindex="-1"></a>BPE can handle words it has never seen:</span>
+<span id="cb32-140"><a href="#cb32-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-143"><a href="#cb32-143" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
+<span id="cb32-144"><a href="#cb32-144" aria-hidden="true" tabindex="-1"></a>flowchart TB</span>
+<span id="cb32-145"><a href="#cb32-145" aria-hidden="true" tabindex="-1"></a>    subgraph known[<span class="ot">"</span><span class="st">Known Word: 'lowest'</span><span class="ot">"</span>]</span>
+<span id="cb32-146"><a href="#cb32-146" aria-hidden="true" tabindex="-1"></a>        k1[<span class="ot">"</span><span class="st">'lowest' -&gt; [16]</span><span class="ot">"</span>]</span>
+<span id="cb32-147"><a href="#cb32-147" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb32-148"><a href="#cb32-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-149"><a href="#cb32-149" aria-hidden="true" tabindex="-1"></a>    subgraph unknown[<span class="ot">"</span><span class="st">Unknown Word: 'lows'</span><span class="ot">"</span>]</span>
+<span id="cb32-150"><a href="#cb32-150" aria-hidden="true" tabindex="-1"></a>        u1[<span class="ot">"</span><span class="st">Split: ['l','o','w','s']</span><span class="ot">"</span>]</span>
+<span id="cb32-151"><a href="#cb32-151" aria-hidden="true" tabindex="-1"></a>        u2[<span class="ot">"</span><span class="st">Apply merges: ['low','s']</span><span class="ot">"</span>]</span>
+<span id="cb32-152"><a href="#cb32-152" aria-hidden="true" tabindex="-1"></a>        u3[<span class="ot">"</span><span class="st">IDs: [13, 9]</span><span class="ot">"</span>]</span>
+<span id="cb32-153"><a href="#cb32-153" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb32-154"><a href="#cb32-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-155"><a href="#cb32-155" aria-hidden="true" tabindex="-1"></a>    subgraph why[<span class="ot">"</span><span class="st">Why BPE Works</span><span class="ot">"</span>]</span>
+<span id="cb32-156"><a href="#cb32-156" aria-hidden="true" tabindex="-1"></a>        w1[<span class="ot">"</span><span class="st">Common words -&gt; single tokens (efficient)</span><span class="ot">"</span>]</span>
+<span id="cb32-157"><a href="#cb32-157" aria-hidden="true" tabindex="-1"></a>        w2[<span class="ot">"</span><span class="st">Rare words -&gt; split into subwords (still encodable)</span><span class="ot">"</span>]</span>
+<span id="cb32-158"><a href="#cb32-158" aria-hidden="true" tabindex="-1"></a>        w3[<span class="ot">"</span><span class="st">Never out of vocabulary - falls back to characters</span><span class="ot">"</span>]</span>
+<span id="cb32-159"><a href="#cb32-159" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb32-160"><a href="#cb32-160" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-161"><a href="#cb32-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-162"><a href="#cb32-162" aria-hidden="true" tabindex="-1"></a><span class="fu">## Special Tokens</span></span>
+<span id="cb32-163"><a href="#cb32-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-164"><a href="#cb32-164" aria-hidden="true" tabindex="-1"></a>Before diving into code, let's understand **special tokens** - reserved tokens with specific meanings in the LLM pipeline:</span>
+<span id="cb32-165"><a href="#cb32-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-166"><a href="#cb32-166" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Token <span class="pp">|</span> Purpose <span class="pp">|</span> When Used <span class="pp">|</span></span>
+<span id="cb32-167"><a href="#cb32-167" aria-hidden="true" tabindex="-1"></a><span class="pp">|-------|---------|-----------|</span></span>
+<span id="cb32-168"><a href="#cb32-168" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`&lt;PAD&gt;`</span> (ID 0) <span class="pp">|</span> Padding <span class="pp">|</span> Batch processing requires same-length sequences. Padding fills shorter sequences. <span class="pp">|</span></span>
+<span id="cb32-169"><a href="#cb32-169" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`&lt;UNK&gt;`</span> (ID 1) <span class="pp">|</span> Unknown <span class="pp">|</span> Characters not seen during training. Production tokenizers avoid this with byte-level BPE. <span class="pp">|</span></span>
+<span id="cb32-170"><a href="#cb32-170" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`&lt;BOS&gt;`</span> (ID 2) <span class="pp">|</span> Beginning of Sequence <span class="pp">|</span> Signals the start of text. Helps model distinguish context boundaries. <span class="pp">|</span></span>
+<span id="cb32-171"><a href="#cb32-171" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`&lt;EOS&gt;`</span> (ID 3) <span class="pp">|</span> End of Sequence <span class="pp">|</span> Signals text completion. Model generates this to stop. Critical for generation. <span class="pp">|</span></span>
+<span id="cb32-172"><a href="#cb32-172" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-173"><a href="#cb32-173" aria-hidden="true" tabindex="-1"></a>These tokens are reserved in the vocabulary before training begins, ensuring consistent IDs across all tokenizers.</span>
+<span id="cb32-174"><a href="#cb32-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-175"><a href="#cb32-175" aria-hidden="true" tabindex="-1"></a><span class="fu">## Code Walkthrough</span></span>
+<span id="cb32-176"><a href="#cb32-176" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-177"><a href="#cb32-177" aria-hidden="true" tabindex="-1"></a>Let's explore tokenization interactively:</span>
+<span id="cb32-178"><a href="#cb32-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-181"><a href="#cb32-181" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb32-182"><a href="#cb32-182" aria-hidden="true" tabindex="-1"></a><span class="co"># Import our BPE tokenizer</span></span>
+<span id="cb32-183"><a href="#cb32-183" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tokenizer <span class="im">import</span> BPETokenizer, SPECIAL_TOKENS</span>
+<span id="cb32-184"><a href="#cb32-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-185"><a href="#cb32-185" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Special tokens:"</span>, SPECIAL_TOKENS)</span>
+<span id="cb32-186"><a href="#cb32-186" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">These tokens are reserved at IDs 0-3 before training begins."</span>)</span>
+<span id="cb32-187"><a href="#cb32-187" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-188"><a href="#cb32-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-189"><a href="#cb32-189" aria-hidden="true" tabindex="-1"></a><span class="fu">### Training a BPE Tokenizer</span></span>
+<span id="cb32-190"><a href="#cb32-190" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-191"><a href="#cb32-191" aria-hidden="true" tabindex="-1"></a>The <span class="in">`BPETokenizer`</span> class has key parameters:</span>
+<span id="cb32-192"><a href="#cb32-192" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-193"><a href="#cb32-193" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`vocab_size`</span>: Target vocabulary size (including special tokens)</span>
+<span id="cb32-194"><a href="#cb32-194" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`min_frequency`</span>: Minimum times a pair must appear to be merged (default: 2)</span>
+<span id="cb32-195"><a href="#cb32-195" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`verbose`</span>: Print detailed training progress</span>
+<span id="cb32-196"><a href="#cb32-196" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-199"><a href="#cb32-199" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb32-200"><a href="#cb32-200" aria-hidden="true" tabindex="-1"></a><span class="co"># Simple text to train on</span></span>
+<span id="cb32-201"><a href="#cb32-201" aria-hidden="true" tabindex="-1"></a>simple_text <span class="op">=</span> <span class="st">"ab cd ab cd ab cd ab cd "</span> <span class="op">*</span> <span class="dv">20</span></span>
+<span id="cb32-202"><a href="#cb32-202" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-203"><a href="#cb32-203" aria-hidden="true" tabindex="-1"></a><span class="co"># Create and train tokenizer</span></span>
+<span id="cb32-204"><a href="#cb32-204" aria-hidden="true" tabindex="-1"></a><span class="co"># vocab_size includes the 4 special tokens, so effective learned tokens = vocab_size - 4</span></span>
+<span id="cb32-205"><a href="#cb32-205" aria-hidden="true" tabindex="-1"></a>tokenizer <span class="op">=</span> BPETokenizer(vocab_size<span class="op">=</span><span class="dv">30</span>, verbose<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb32-206"><a href="#cb32-206" aria-hidden="true" tabindex="-1"></a>stats <span class="op">=</span> tokenizer.train(simple_text, show_progress<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb32-207"><a href="#cb32-207" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-208"><a href="#cb32-208" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Vocab size: </span><span class="sc">{</span>stats[<span class="st">'vocab_size'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-209"><a href="#cb32-209" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Merges learned: </span><span class="sc">{</span>stats[<span class="st">'num_merges'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-210"><a href="#cb32-210" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Special tokens: </span><span class="sc">{</span>stats[<span class="st">'num_special_tokens'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-211"><a href="#cb32-211" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-212"><a href="#cb32-212" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-215"><a href="#cb32-215" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb32-216"><a href="#cb32-216" aria-hidden="true" tabindex="-1"></a><span class="co"># See what patterns were learned</span></span>
+<span id="cb32-217"><a href="#cb32-217" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Learned merges:"</span>)</span>
+<span id="cb32-218"><a href="#cb32-218" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, ((a, b), merged) <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="bu">list</span>(tokenizer.merges.items())[:<span class="dv">10</span>]):</span>
+<span id="cb32-219"><a href="#cb32-219" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">. </span><span class="sc">{</span><span class="bu">repr</span>(a)<span class="sc">}</span><span class="ss"> + </span><span class="sc">{</span><span class="bu">repr</span>(b)<span class="sc">}</span><span class="ss"> -&gt; </span><span class="sc">{</span><span class="bu">repr</span>(merged)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-220"><a href="#cb32-220" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-221"><a href="#cb32-221" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-222"><a href="#cb32-222" aria-hidden="true" tabindex="-1"></a><span class="fu">### Encoding and Decoding</span></span>
+<span id="cb32-223"><a href="#cb32-223" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-224"><a href="#cb32-224" aria-hidden="true" tabindex="-1"></a>Encoding applies learned merges in the order they were learned. This is crucial - the merge order determines how text is split.</span>
+<span id="cb32-225"><a href="#cb32-225" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-228"><a href="#cb32-228" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb32-229"><a href="#cb32-229" aria-hidden="true" tabindex="-1"></a><span class="co"># Encode some text</span></span>
+<span id="cb32-230"><a href="#cb32-230" aria-hidden="true" tabindex="-1"></a>test_text <span class="op">=</span> <span class="st">"ab cd"</span></span>
+<span id="cb32-231"><a href="#cb32-231" aria-hidden="true" tabindex="-1"></a>ids <span class="op">=</span> tokenizer.encode(test_text)</span>
+<span id="cb32-232"><a href="#cb32-232" aria-hidden="true" tabindex="-1"></a>tokens <span class="op">=</span> [tokenizer.id_to_token(i) <span class="cf">for</span> i <span class="kw">in</span> ids]</span>
+<span id="cb32-233"><a href="#cb32-233" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-234"><a href="#cb32-234" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Text: '</span><span class="sc">{</span>test_text<span class="sc">}</span><span class="ss">'"</span>)</span>
+<span id="cb32-235"><a href="#cb32-235" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Token IDs: </span><span class="sc">{</span>ids<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-236"><a href="#cb32-236" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Tokens: </span><span class="sc">{</span>tokens<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-237"><a href="#cb32-237" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-238"><a href="#cb32-238" aria-hidden="true" tabindex="-1"></a><span class="co"># Decode back</span></span>
+<span id="cb32-239"><a href="#cb32-239" aria-hidden="true" tabindex="-1"></a>decoded <span class="op">=</span> tokenizer.decode(ids)</span>
+<span id="cb32-240"><a href="#cb32-240" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Decoded: '</span><span class="sc">{</span>decoded<span class="sc">}</span><span class="ss">'"</span>)</span>
+<span id="cb32-241"><a href="#cb32-241" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Round-trip successful: </span><span class="sc">{</span>test_text <span class="op">==</span> decoded<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-242"><a href="#cb32-242" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-243"><a href="#cb32-243" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-246"><a href="#cb32-246" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb32-247"><a href="#cb32-247" aria-hidden="true" tabindex="-1"></a><span class="co"># With special tokens (used during actual LLM training/inference)</span></span>
+<span id="cb32-248"><a href="#cb32-248" aria-hidden="true" tabindex="-1"></a>ids_with_special <span class="op">=</span> tokenizer.encode(test_text, add_special_tokens<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb32-249"><a href="#cb32-249" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">With special tokens: </span><span class="sc">{</span>ids_with_special<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-250"><a href="#cb32-250" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Tokens: </span><span class="sc">{</span>[tokenizer.id_to_token(i) <span class="cf">for</span> i <span class="kw">in</span> ids_with_special]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-251"><a href="#cb32-251" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-252"><a href="#cb32-252" aria-hidden="true" tabindex="-1"></a><span class="co"># Decoding skips special tokens by default</span></span>
+<span id="cb32-253"><a href="#cb32-253" aria-hidden="true" tabindex="-1"></a>decoded <span class="op">=</span> tokenizer.decode(ids_with_special, skip_special_tokens<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb32-254"><a href="#cb32-254" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Decoded (skip special): '</span><span class="sc">{</span>decoded<span class="sc">}</span><span class="ss">'"</span>)</span>
+<span id="cb32-255"><a href="#cb32-255" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-256"><a href="#cb32-256" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-257"><a href="#cb32-257" aria-hidden="true" tabindex="-1"></a><span class="fu">### Training on Python Code</span></span>
+<span id="cb32-258"><a href="#cb32-258" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-261"><a href="#cb32-261" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb32-262"><a href="#cb32-262" aria-hidden="true" tabindex="-1"></a>python_code <span class="op">=</span> <span class="st">'''</span></span>
+<span id="cb32-263"><a href="#cb32-263" aria-hidden="true" tabindex="-1"></a><span class="st">def fibonacci(n):</span></span>
+<span id="cb32-264"><a href="#cb32-264" aria-hidden="true" tabindex="-1"></a><span class="st">    """Calculate the nth Fibonacci number."""</span></span>
+<span id="cb32-265"><a href="#cb32-265" aria-hidden="true" tabindex="-1"></a><span class="st">    if n &lt;= 1:</span></span>
+<span id="cb32-266"><a href="#cb32-266" aria-hidden="true" tabindex="-1"></a><span class="st">        return n</span></span>
+<span id="cb32-267"><a href="#cb32-267" aria-hidden="true" tabindex="-1"></a><span class="st">    return fibonacci(n - 1) + fibonacci(n - 2)</span></span>
+<span id="cb32-268"><a href="#cb32-268" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-269"><a href="#cb32-269" aria-hidden="true" tabindex="-1"></a><span class="st">def factorial(n):</span></span>
+<span id="cb32-270"><a href="#cb32-270" aria-hidden="true" tabindex="-1"></a><span class="st">    """Calculate n factorial."""</span></span>
+<span id="cb32-271"><a href="#cb32-271" aria-hidden="true" tabindex="-1"></a><span class="st">    if n &lt;= 1:</span></span>
+<span id="cb32-272"><a href="#cb32-272" aria-hidden="true" tabindex="-1"></a><span class="st">        return 1</span></span>
+<span id="cb32-273"><a href="#cb32-273" aria-hidden="true" tabindex="-1"></a><span class="st">    return n * factorial(n - 1)</span></span>
+<span id="cb32-274"><a href="#cb32-274" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-275"><a href="#cb32-275" aria-hidden="true" tabindex="-1"></a><span class="st">class Calculator:</span></span>
+<span id="cb32-276"><a href="#cb32-276" aria-hidden="true" tabindex="-1"></a><span class="st">    def __init__(self):</span></span>
+<span id="cb32-277"><a href="#cb32-277" aria-hidden="true" tabindex="-1"></a><span class="st">        self.result = 0</span></span>
+<span id="cb32-278"><a href="#cb32-278" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-279"><a href="#cb32-279" aria-hidden="true" tabindex="-1"></a><span class="st">    def add(self, x):</span></span>
+<span id="cb32-280"><a href="#cb32-280" aria-hidden="true" tabindex="-1"></a><span class="st">        self.result += x</span></span>
+<span id="cb32-281"><a href="#cb32-281" aria-hidden="true" tabindex="-1"></a><span class="st">        return self</span></span>
+<span id="cb32-282"><a href="#cb32-282" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-283"><a href="#cb32-283" aria-hidden="true" tabindex="-1"></a><span class="st">    def subtract(self, x):</span></span>
+<span id="cb32-284"><a href="#cb32-284" aria-hidden="true" tabindex="-1"></a><span class="st">        self.result -= x</span></span>
+<span id="cb32-285"><a href="#cb32-285" aria-hidden="true" tabindex="-1"></a><span class="st">        return self</span></span>
+<span id="cb32-286"><a href="#cb32-286" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-287"><a href="#cb32-287" aria-hidden="true" tabindex="-1"></a><span class="st"># Main execution</span></span>
+<span id="cb32-288"><a href="#cb32-288" aria-hidden="true" tabindex="-1"></a><span class="st">if __name__ == "__main__":</span></span>
+<span id="cb32-289"><a href="#cb32-289" aria-hidden="true" tabindex="-1"></a><span class="st">    print(fibonacci(10))</span></span>
+<span id="cb32-290"><a href="#cb32-290" aria-hidden="true" tabindex="-1"></a><span class="st">    print(factorial(5))</span></span>
+<span id="cb32-291"><a href="#cb32-291" aria-hidden="true" tabindex="-1"></a><span class="st">'''</span></span>
+<span id="cb32-292"><a href="#cb32-292" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-293"><a href="#cb32-293" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Training on </span><span class="sc">{</span><span class="bu">len</span>(python_code)<span class="sc">}</span><span class="ss"> characters of Python code"</span>)</span>
+<span id="cb32-294"><a href="#cb32-294" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-295"><a href="#cb32-295" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-298"><a href="#cb32-298" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb32-299"><a href="#cb32-299" aria-hidden="true" tabindex="-1"></a><span class="co"># Train tokenizer on code</span></span>
+<span id="cb32-300"><a href="#cb32-300" aria-hidden="true" tabindex="-1"></a>code_tokenizer <span class="op">=</span> BPETokenizer(vocab_size<span class="op">=</span><span class="dv">200</span>, verbose<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb32-301"><a href="#cb32-301" aria-hidden="true" tabindex="-1"></a>stats <span class="op">=</span> code_tokenizer.train(python_code <span class="op">*</span> <span class="dv">3</span>, show_progress<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb32-302"><a href="#cb32-302" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-303"><a href="#cb32-303" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Final vocab size: </span><span class="sc">{</span>stats[<span class="st">'vocab_size'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-304"><a href="#cb32-304" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Merges learned: </span><span class="sc">{</span>stats[<span class="st">'num_merges'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-305"><a href="#cb32-305" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-306"><a href="#cb32-306" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-309"><a href="#cb32-309" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb32-310"><a href="#cb32-310" aria-hidden="true" tabindex="-1"></a><span class="co"># Look at what code patterns were learned</span></span>
+<span id="cb32-311"><a href="#cb32-311" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Interesting tokens learned (longest first):"</span>)</span>
+<span id="cb32-312"><a href="#cb32-312" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">40</span>)</span>
+<span id="cb32-313"><a href="#cb32-313" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-314"><a href="#cb32-314" aria-hidden="true" tabindex="-1"></a>interesting_patterns <span class="op">=</span> []</span>
+<span id="cb32-315"><a href="#cb32-315" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> token, <span class="bu">id</span> <span class="kw">in</span> code_tokenizer.vocab.items():</span>
+<span id="cb32-316"><a href="#cb32-316" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(token) <span class="op">&gt;=</span> <span class="dv">2</span> <span class="kw">and</span> <span class="kw">not</span> token.startswith(<span class="st">'&lt;'</span>):</span>
+<span id="cb32-317"><a href="#cb32-317" aria-hidden="true" tabindex="-1"></a>        interesting_patterns.append((token, <span class="bu">id</span>))</span>
+<span id="cb32-318"><a href="#cb32-318" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-319"><a href="#cb32-319" aria-hidden="true" tabindex="-1"></a><span class="co"># Sort by length (longer = more merged)</span></span>
+<span id="cb32-320"><a href="#cb32-320" aria-hidden="true" tabindex="-1"></a>interesting_patterns.sort(key<span class="op">=</span><span class="kw">lambda</span> x: <span class="bu">len</span>(x[<span class="dv">0</span>]), reverse<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb32-321"><a href="#cb32-321" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-322"><a href="#cb32-322" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> token, <span class="bu">id</span> <span class="kw">in</span> interesting_patterns[:<span class="dv">15</span>]:</span>
+<span id="cb32-323"><a href="#cb32-323" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span><span class="bu">id</span><span class="sc">:3d}</span><span class="ss">: </span><span class="sc">{</span><span class="bu">repr</span>(token)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-324"><a href="#cb32-324" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-325"><a href="#cb32-325" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-326"><a href="#cb32-326" aria-hidden="true" tabindex="-1"></a><span class="fu">### Visualizing Tokenization</span></span>
+<span id="cb32-327"><a href="#cb32-327" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-330"><a href="#cb32-330" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb32-331"><a href="#cb32-331" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> visualize_tokens(tokenizer, text):</span>
+<span id="cb32-332"><a href="#cb32-332" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Show how text is split into tokens with colors."""</span></span>
+<span id="cb32-333"><a href="#cb32-333" aria-hidden="true" tabindex="-1"></a>    ids <span class="op">=</span> tokenizer.encode(text)</span>
+<span id="cb32-334"><a href="#cb32-334" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> [tokenizer.id_to_token(i) <span class="cf">for</span> i <span class="kw">in</span> ids]</span>
+<span id="cb32-335"><a href="#cb32-335" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-336"><a href="#cb32-336" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Original: </span><span class="sc">{</span><span class="bu">repr</span>(text)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-337"><a href="#cb32-337" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Tokens (</span><span class="sc">{</span><span class="bu">len</span>(tokens)<span class="sc">}</span><span class="ss">): </span><span class="sc">{</span>tokens<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-338"><a href="#cb32-338" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"IDs: </span><span class="sc">{</span>ids<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-339"><a href="#cb32-339" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Compression: </span><span class="sc">{</span><span class="bu">len</span>(text)<span class="op">/</span><span class="bu">len</span>(ids)<span class="sc">:.2f}</span><span class="ss"> chars/token"</span>)</span>
+<span id="cb32-340"><a href="#cb32-340" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>()</span>
+<span id="cb32-341"><a href="#cb32-341" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-342"><a href="#cb32-342" aria-hidden="true" tabindex="-1"></a><span class="co"># Try different code patterns</span></span>
+<span id="cb32-343"><a href="#cb32-343" aria-hidden="true" tabindex="-1"></a>patterns <span class="op">=</span> [</span>
+<span id="cb32-344"><a href="#cb32-344" aria-hidden="true" tabindex="-1"></a>    <span class="st">"def fibonacci(n):"</span>,</span>
+<span id="cb32-345"><a href="#cb32-345" aria-hidden="true" tabindex="-1"></a>    <span class="st">"self.result = 0"</span>,</span>
+<span id="cb32-346"><a href="#cb32-346" aria-hidden="true" tabindex="-1"></a>    <span class="st">"return self"</span>,</span>
+<span id="cb32-347"><a href="#cb32-347" aria-hidden="true" tabindex="-1"></a>    <span class="st">"    for i in range(10):"</span>,</span>
+<span id="cb32-348"><a href="#cb32-348" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb32-349"><a href="#cb32-349" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-350"><a href="#cb32-350" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> pattern <span class="kw">in</span> patterns:</span>
+<span id="cb32-351"><a href="#cb32-351" aria-hidden="true" tabindex="-1"></a>    visualize_tokens(code_tokenizer, pattern)</span>
+<span id="cb32-352"><a href="#cb32-352" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-353"><a href="#cb32-353" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-354"><a href="#cb32-354" aria-hidden="true" tabindex="-1"></a><span class="fu">### Vocabulary Size Tradeoffs</span></span>
+<span id="cb32-355"><a href="#cb32-355" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-356"><a href="#cb32-356" aria-hidden="true" tabindex="-1"></a>Vocabulary size is one of the most important hyperparameters in tokenization:</span>
+<span id="cb32-357"><a href="#cb32-357" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-358"><a href="#cb32-358" aria-hidden="true" tabindex="-1"></a>**Larger vocabulary:**</span>
+<span id="cb32-359"><a href="#cb32-359" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>(+) Shorter sequences = faster training, more context in fixed window</span>
+<span id="cb32-360"><a href="#cb32-360" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>(+) Common words as single tokens = better semantic units</span>
+<span id="cb32-361"><a href="#cb32-361" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>(-) Larger embedding table = more parameters, more memory</span>
+<span id="cb32-362"><a href="#cb32-362" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>(-) Rare tokens get few training examples = poor representations</span>
+<span id="cb32-363"><a href="#cb32-363" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-364"><a href="#cb32-364" aria-hidden="true" tabindex="-1"></a>**Smaller vocabulary:**</span>
+<span id="cb32-365"><a href="#cb32-365" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>(+) Smaller model, faster embedding lookups</span>
+<span id="cb32-366"><a href="#cb32-366" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>(+) Every token well-trained on many examples</span>
+<span id="cb32-367"><a href="#cb32-367" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>(-) Longer sequences = slower training, less context</span>
+<span id="cb32-368"><a href="#cb32-368" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>(-) Words split into less meaningful pieces</span>
+<span id="cb32-369"><a href="#cb32-369" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-372"><a href="#cb32-372" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb32-373"><a href="#cb32-373" aria-hidden="true" tabindex="-1"></a>test_text <span class="op">=</span> <span class="st">"def calculate_fibonacci(number):</span><span class="ch">\n</span><span class="st">    return fibonacci(number)"</span></span>
+<span id="cb32-374"><a href="#cb32-374" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-375"><a href="#cb32-375" aria-hidden="true" tabindex="-1"></a>vocab_sizes <span class="op">=</span> [<span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">200</span>, <span class="dv">500</span>]</span>
+<span id="cb32-376"><a href="#cb32-376" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-377"><a href="#cb32-377" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Text: </span><span class="sc">{</span><span class="bu">repr</span>(test_text)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-378"><a href="#cb32-378" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Text length: </span><span class="sc">{</span><span class="bu">len</span>(test_text)<span class="sc">}</span><span class="ss"> characters"</span>)</span>
+<span id="cb32-379"><a href="#cb32-379" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
+<span id="cb32-380"><a href="#cb32-380" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-381"><a href="#cb32-381" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> vocab_size <span class="kw">in</span> vocab_sizes:</span>
+<span id="cb32-382"><a href="#cb32-382" aria-hidden="true" tabindex="-1"></a>    tok <span class="op">=</span> BPETokenizer(vocab_size<span class="op">=</span>vocab_size, verbose<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb32-383"><a href="#cb32-383" aria-hidden="true" tabindex="-1"></a>    tok.train(python_code <span class="op">*</span> <span class="dv">5</span>, show_progress<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb32-384"><a href="#cb32-384" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-385"><a href="#cb32-385" aria-hidden="true" tabindex="-1"></a>    ids <span class="op">=</span> tok.encode(test_text)</span>
+<span id="cb32-386"><a href="#cb32-386" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> [tok.id_to_token(i) <span class="cf">for</span> i <span class="kw">in</span> ids]</span>
+<span id="cb32-387"><a href="#cb32-387" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-388"><a href="#cb32-388" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Vocab size </span><span class="sc">{</span>vocab_size<span class="sc">}</span><span class="ss">:"</span>)</span>
+<span id="cb32-389"><a href="#cb32-389" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Tokens: </span><span class="sc">{</span><span class="bu">len</span>(ids)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-390"><a href="#cb32-390" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Ratio: </span><span class="sc">{</span><span class="bu">len</span>(test_text)<span class="op">/</span><span class="bu">len</span>(ids)<span class="sc">:.1f}</span><span class="ss"> chars/token"</span>)</span>
+<span id="cb32-391"><a href="#cb32-391" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Sample: </span><span class="sc">{</span>[tok.id_to_token(i) <span class="cf">for</span> i <span class="kw">in</span> ids[:<span class="dv">5</span>]]<span class="sc">}</span><span class="ss">..."</span>)</span>
+<span id="cb32-392"><a href="#cb32-392" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>()</span>
+<span id="cb32-393"><a href="#cb32-393" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-394"><a href="#cb32-394" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-395"><a href="#cb32-395" aria-hidden="true" tabindex="-1"></a>**Real-world vocabulary sizes:**</span>
+<span id="cb32-396"><a href="#cb32-396" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>GPT-2: 50,257 tokens</span>
+<span id="cb32-397"><a href="#cb32-397" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>GPT-4: ~100,000 tokens</span>
+<span id="cb32-398"><a href="#cb32-398" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Llama 2: 32,000 tokens</span>
+<span id="cb32-399"><a href="#cb32-399" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Claude: ~100,000 tokens</span>
+<span id="cb32-400"><a href="#cb32-400" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-401"><a href="#cb32-401" aria-hidden="true" tabindex="-1"></a><span class="fu">### Saving and Loading</span></span>
+<span id="cb32-402"><a href="#cb32-402" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-405"><a href="#cb32-405" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb32-406"><a href="#cb32-406" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tempfile</span>
+<span id="cb32-407"><a href="#cb32-407" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb32-408"><a href="#cb32-408" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-409"><a href="#cb32-409" aria-hidden="true" tabindex="-1"></a><span class="co"># Save tokenizer</span></span>
+<span id="cb32-410"><a href="#cb32-410" aria-hidden="true" tabindex="-1"></a>save_path <span class="op">=</span> tempfile.mktemp(suffix<span class="op">=</span><span class="st">'.json'</span>)</span>
+<span id="cb32-411"><a href="#cb32-411" aria-hidden="true" tabindex="-1"></a>code_tokenizer.save(save_path)</span>
+<span id="cb32-412"><a href="#cb32-412" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-413"><a href="#cb32-413" aria-hidden="true" tabindex="-1"></a><span class="co"># Load it back</span></span>
+<span id="cb32-414"><a href="#cb32-414" aria-hidden="true" tabindex="-1"></a>loaded <span class="op">=</span> BPETokenizer.load(save_path)</span>
+<span id="cb32-415"><a href="#cb32-415" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-416"><a href="#cb32-416" aria-hidden="true" tabindex="-1"></a><span class="co"># Verify it works the same</span></span>
+<span id="cb32-417"><a href="#cb32-417" aria-hidden="true" tabindex="-1"></a>test <span class="op">=</span> <span class="st">"def test():"</span></span>
+<span id="cb32-418"><a href="#cb32-418" aria-hidden="true" tabindex="-1"></a>original_ids <span class="op">=</span> code_tokenizer.encode(test)</span>
+<span id="cb32-419"><a href="#cb32-419" aria-hidden="true" tabindex="-1"></a>loaded_ids <span class="op">=</span> loaded.encode(test)</span>
+<span id="cb32-420"><a href="#cb32-420" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-421"><a href="#cb32-421" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Original encoding: </span><span class="sc">{</span>original_ids<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-422"><a href="#cb32-422" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Loaded encoding:   </span><span class="sc">{</span>loaded_ids<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-423"><a href="#cb32-423" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Match: </span><span class="sc">{</span>original_ids <span class="op">==</span> loaded_ids<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-424"><a href="#cb32-424" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-425"><a href="#cb32-425" aria-hidden="true" tabindex="-1"></a><span class="co"># Cleanup</span></span>
+<span id="cb32-426"><a href="#cb32-426" aria-hidden="true" tabindex="-1"></a>os.unlink(save_path)</span>
+<span id="cb32-427"><a href="#cb32-427" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-428"><a href="#cb32-428" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-429"><a href="#cb32-429" aria-hidden="true" tabindex="-1"></a><span class="fu">## Exercises</span></span>
+<span id="cb32-430"><a href="#cb32-430" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-431"><a href="#cb32-431" aria-hidden="true" tabindex="-1"></a><span class="fu">### Exercise 1: Compression Efficiency</span></span>
+<span id="cb32-432"><a href="#cb32-432" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-433"><a href="#cb32-433" aria-hidden="true" tabindex="-1"></a>BPE achieves better compression on repetitive text. This matters because better compression = shorter sequences = more context in the model's window.</span>
+<span id="cb32-434"><a href="#cb32-434" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-437"><a href="#cb32-437" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb32-438"><a href="#cb32-438" aria-hidden="true" tabindex="-1"></a><span class="co"># Train on repetitive vs varied text and compare compression</span></span>
+<span id="cb32-439"><a href="#cb32-439" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-440"><a href="#cb32-440" aria-hidden="true" tabindex="-1"></a>texts <span class="op">=</span> {</span>
+<span id="cb32-441"><a href="#cb32-441" aria-hidden="true" tabindex="-1"></a>    <span class="st">"repetitive"</span>: <span class="st">"the the the "</span> <span class="op">*</span> <span class="dv">100</span>,</span>
+<span id="cb32-442"><a href="#cb32-442" aria-hidden="true" tabindex="-1"></a>    <span class="st">"varied"</span>: <span class="st">" "</span>.join([<span class="ss">f"word</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">"</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">100</span>)]),</span>
+<span id="cb32-443"><a href="#cb32-443" aria-hidden="true" tabindex="-1"></a>    <span class="st">"code"</span>: python_code,</span>
+<span id="cb32-444"><a href="#cb32-444" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb32-445"><a href="#cb32-445" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-446"><a href="#cb32-446" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Compression comparison:"</span>)</span>
+<span id="cb32-447"><a href="#cb32-447" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">40</span>)</span>
+<span id="cb32-448"><a href="#cb32-448" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-449"><a href="#cb32-449" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name, text <span class="kw">in</span> texts.items():</span>
+<span id="cb32-450"><a href="#cb32-450" aria-hidden="true" tabindex="-1"></a>    tok <span class="op">=</span> BPETokenizer(vocab_size<span class="op">=</span><span class="dv">200</span>, verbose<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb32-451"><a href="#cb32-451" aria-hidden="true" tabindex="-1"></a>    tok.train(text, show_progress<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb32-452"><a href="#cb32-452" aria-hidden="true" tabindex="-1"></a>    ids <span class="op">=</span> tok.encode(text)</span>
+<span id="cb32-453"><a href="#cb32-453" aria-hidden="true" tabindex="-1"></a>    ratio <span class="op">=</span> <span class="bu">len</span>(text) <span class="op">/</span> <span class="bu">len</span>(ids)</span>
+<span id="cb32-454"><a href="#cb32-454" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>name<span class="sc">:12s}</span><span class="ss">: </span><span class="sc">{</span>ratio<span class="sc">:.2f}</span><span class="ss"> chars/token"</span>)</span>
+<span id="cb32-455"><a href="#cb32-455" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-456"><a href="#cb32-456" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Note: Repetitive text compresses best because BPE learns"</span>)</span>
+<span id="cb32-457"><a href="#cb32-457" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"common patterns. Code has structure but more variety."</span>)</span>
+<span id="cb32-458"><a href="#cb32-458" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-459"><a href="#cb32-459" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-460"><a href="#cb32-460" aria-hidden="true" tabindex="-1"></a><span class="fu">### Exercise 2: Analyze the First Merges</span></span>
+<span id="cb32-461"><a href="#cb32-461" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-462"><a href="#cb32-462" aria-hidden="true" tabindex="-1"></a>The first merges reveal the most frequent patterns in your data. For English text, you'll often see common letter pairs like 'th', 'he', 'in'.</span>
+<span id="cb32-463"><a href="#cb32-463" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-466"><a href="#cb32-466" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb32-467"><a href="#cb32-467" aria-hidden="true" tabindex="-1"></a><span class="co"># What patterns are learned first?</span></span>
+<span id="cb32-468"><a href="#cb32-468" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-469"><a href="#cb32-469" aria-hidden="true" tabindex="-1"></a>sample_text <span class="op">=</span> <span class="st">"hello world hello world hello world "</span> <span class="op">*</span> <span class="dv">10</span></span>
+<span id="cb32-470"><a href="#cb32-470" aria-hidden="true" tabindex="-1"></a>tok <span class="op">=</span> BPETokenizer(vocab_size<span class="op">=</span><span class="dv">50</span>, verbose<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb32-471"><a href="#cb32-471" aria-hidden="true" tabindex="-1"></a>tok.train(sample_text, show_progress<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb32-472"><a href="#cb32-472" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-473"><a href="#cb32-473" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"First 10 merges (most frequent patterns):"</span>)</span>
+<span id="cb32-474"><a href="#cb32-474" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, ((a, b), merged) <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="bu">list</span>(tok.merges.items())[:<span class="dv">10</span>]):</span>
+<span id="cb32-475"><a href="#cb32-475" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">. '</span><span class="sc">{</span>a<span class="sc">}</span><span class="ss">' + '</span><span class="sc">{</span>b<span class="sc">}</span><span class="ss">' = '</span><span class="sc">{</span>merged<span class="sc">}</span><span class="ss">'"</span>)</span>
+<span id="cb32-476"><a href="#cb32-476" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-477"><a href="#cb32-477" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Notice: Common substrings merge first, eventually"</span>)</span>
+<span id="cb32-478"><a href="#cb32-478" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"forming complete words like 'hello' and 'world'."</span>)</span>
+<span id="cb32-479"><a href="#cb32-479" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-480"><a href="#cb32-480" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-481"><a href="#cb32-481" aria-hidden="true" tabindex="-1"></a><span class="fu">### Exercise 3: Handle Unknown Characters</span></span>
+<span id="cb32-482"><a href="#cb32-482" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-483"><a href="#cb32-483" aria-hidden="true" tabindex="-1"></a>Our simple tokenizer can only encode characters it saw during training. Characters not in the vocabulary become <span class="in">`&lt;UNK&gt;`</span> tokens.</span>
+<span id="cb32-484"><a href="#cb32-484" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-487"><a href="#cb32-487" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb32-488"><a href="#cb32-488" aria-hidden="true" tabindex="-1"></a><span class="co"># What happens with characters not in training?</span></span>
+<span id="cb32-489"><a href="#cb32-489" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-490"><a href="#cb32-490" aria-hidden="true" tabindex="-1"></a>tokenizer <span class="op">=</span> BPETokenizer(vocab_size<span class="op">=</span><span class="dv">50</span>, verbose<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb32-491"><a href="#cb32-491" aria-hidden="true" tabindex="-1"></a>tokenizer.train(<span class="st">"hello world"</span>, show_progress<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb32-492"><a href="#cb32-492" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-493"><a href="#cb32-493" aria-hidden="true" tabindex="-1"></a><span class="co"># Try encoding text with emoji</span></span>
+<span id="cb32-494"><a href="#cb32-494" aria-hidden="true" tabindex="-1"></a>test <span class="op">=</span> <span class="st">"hello world"</span>  <span class="co"># Safe text</span></span>
+<span id="cb32-495"><a href="#cb32-495" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb32-496"><a href="#cb32-496" aria-hidden="true" tabindex="-1"></a>    ids <span class="op">=</span> tokenizer.encode(test)</span>
+<span id="cb32-497"><a href="#cb32-497" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"'</span><span class="sc">{</span>test<span class="sc">}</span><span class="ss">' -&gt; </span><span class="sc">{</span>ids<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-498"><a href="#cb32-498" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Decoded: '</span><span class="sc">{</span>tokenizer<span class="sc">.</span>decode(ids)<span class="sc">}</span><span class="ss">'"</span>)</span>
+<span id="cb32-499"><a href="#cb32-499" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb32-500"><a href="#cb32-500" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-501"><a href="#cb32-501" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-502"><a href="#cb32-502" aria-hidden="true" tabindex="-1"></a><span class="co"># Now try with a character not in training</span></span>
+<span id="cb32-503"><a href="#cb32-503" aria-hidden="true" tabindex="-1"></a>test2 <span class="op">=</span> <span class="st">"hello 123"</span></span>
+<span id="cb32-504"><a href="#cb32-504" aria-hidden="true" tabindex="-1"></a>ids <span class="op">=</span> tokenizer.encode(test2)</span>
+<span id="cb32-505"><a href="#cb32-505" aria-hidden="true" tabindex="-1"></a>tokens <span class="op">=</span> [tokenizer.id_to_token(i) <span class="cf">for</span> i <span class="kw">in</span> ids]</span>
+<span id="cb32-506"><a href="#cb32-506" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">'</span><span class="sc">{</span>test2<span class="sc">}</span><span class="ss">' -&gt; </span><span class="sc">{</span>ids<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-507"><a href="#cb32-507" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Tokens: </span><span class="sc">{</span>tokens<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-508"><a href="#cb32-508" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Notice: '1', '2', '3' become &lt;UNK&gt; (ID 1) because they"</span>)</span>
+<span id="cb32-509"><a href="#cb32-509" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"weren't in the training data."</span>)</span>
+<span id="cb32-510"><a href="#cb32-510" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">This is why production tokenizers use BYTE-LEVEL BPE:"</span>)</span>
+<span id="cb32-511"><a href="#cb32-511" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"- Operate on UTF-8 bytes (0-255) instead of Unicode characters"</span>)</span>
+<span id="cb32-512"><a href="#cb32-512" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"- Any byte sequence can be represented -&gt; no UNK tokens"</span>)</span>
+<span id="cb32-513"><a href="#cb32-513" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"- tiktoken and SentencePiece both use this approach"</span>)</span>
+<span id="cb32-514"><a href="#cb32-514" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-515"><a href="#cb32-515" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-516"><a href="#cb32-516" aria-hidden="true" tabindex="-1"></a><span class="fu">### Exercise 4: Whitespace Handling</span></span>
+<span id="cb32-517"><a href="#cb32-517" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-518"><a href="#cb32-518" aria-hidden="true" tabindex="-1"></a>Whitespace is tricky in tokenization. Our tokenizer preserves it, but notice how spaces can be part of tokens.</span>
+<span id="cb32-519"><a href="#cb32-519" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-522"><a href="#cb32-522" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb32-523"><a href="#cb32-523" aria-hidden="true" tabindex="-1"></a><span class="co"># Whitespace is significant in tokenization</span></span>
+<span id="cb32-524"><a href="#cb32-524" aria-hidden="true" tabindex="-1"></a>code_tok <span class="op">=</span> BPETokenizer(vocab_size<span class="op">=</span><span class="dv">100</span>, verbose<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb32-525"><a href="#cb32-525" aria-hidden="true" tabindex="-1"></a>code_tok.train(<span class="st">"def foo():</span><span class="ch">\n</span><span class="st">    return 1</span><span class="ch">\n</span><span class="st">def bar():</span><span class="ch">\n</span><span class="st">    return 2"</span>, show_progress<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb32-526"><a href="#cb32-526" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-527"><a href="#cb32-527" aria-hidden="true" tabindex="-1"></a><span class="co"># See how indentation is tokenized</span></span>
+<span id="cb32-528"><a href="#cb32-528" aria-hidden="true" tabindex="-1"></a>samples <span class="op">=</span> [</span>
+<span id="cb32-529"><a href="#cb32-529" aria-hidden="true" tabindex="-1"></a>    <span class="st">"def foo():"</span>,</span>
+<span id="cb32-530"><a href="#cb32-530" aria-hidden="true" tabindex="-1"></a>    <span class="st">"    return"</span>,  <span class="co"># 4 spaces</span></span>
+<span id="cb32-531"><a href="#cb32-531" aria-hidden="true" tabindex="-1"></a>    <span class="st">"        x"</span>,   <span class="co"># 8 spaces</span></span>
+<span id="cb32-532"><a href="#cb32-532" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb32-533"><a href="#cb32-533" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-534"><a href="#cb32-534" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> sample <span class="kw">in</span> samples:</span>
+<span id="cb32-535"><a href="#cb32-535" aria-hidden="true" tabindex="-1"></a>    ids <span class="op">=</span> code_tok.encode(sample)</span>
+<span id="cb32-536"><a href="#cb32-536" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> [code_tok.id_to_token(i) <span class="cf">for</span> i <span class="kw">in</span> ids]</span>
+<span id="cb32-537"><a href="#cb32-537" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="bu">repr</span>(sample)<span class="sc">:20s}</span><span class="ss"> -&gt; </span><span class="sc">{</span>tokens<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-538"><a href="#cb32-538" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-539"><a href="#cb32-539" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">In production tokenizers, leading spaces often attach to"</span>)</span>
+<span id="cb32-540"><a href="#cb32-540" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"the following word: ' hello' is one token, not ' ' + 'hello'"</span>)</span>
+<span id="cb32-541"><a href="#cb32-541" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-542"><a href="#cb32-542" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-543"><a href="#cb32-543" aria-hidden="true" tabindex="-1"></a><span class="fu">## Tokenization in the LLM Pipeline</span></span>
+<span id="cb32-544"><a href="#cb32-544" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-545"><a href="#cb32-545" aria-hidden="true" tabindex="-1"></a>Here's where tokenization fits in the full pipeline:</span>
+<span id="cb32-546"><a href="#cb32-546" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-549"><a href="#cb32-549" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
+<span id="cb32-550"><a href="#cb32-550" aria-hidden="true" tabindex="-1"></a>flowchart LR</span>
+<span id="cb32-551"><a href="#cb32-551" aria-hidden="true" tabindex="-1"></a>    subgraph input[<span class="ot">"</span><span class="st">Input</span><span class="ot">"</span>]</span>
+<span id="cb32-552"><a href="#cb32-552" aria-hidden="true" tabindex="-1"></a>        text[<span class="ot">"</span><span class="st">Raw Text&lt;br/&gt;'def hello():'</span><span class="ot">"</span>]</span>
+<span id="cb32-553"><a href="#cb32-553" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb32-554"><a href="#cb32-554" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-555"><a href="#cb32-555" aria-hidden="true" tabindex="-1"></a>    subgraph tokenize[<span class="ot">"</span><span class="st">Tokenization</span><span class="ot">"</span>]</span>
+<span id="cb32-556"><a href="#cb32-556" aria-hidden="true" tabindex="-1"></a>        <span class="fu">split</span>[<span class="ot">"</span><span class="st">Split into tokens&lt;br/&gt;['def', ' ', 'hello', '(', ')', ':']</span><span class="ot">"</span>]</span>
+<span id="cb32-557"><a href="#cb32-557" aria-hidden="true" tabindex="-1"></a>        lookup[<span class="ot">"</span><span class="st">Look up IDs&lt;br/&gt;[42, 5, 128, 8, 9, 12]</span><span class="ot">"</span>]</span>
+<span id="cb32-558"><a href="#cb32-558" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb32-559"><a href="#cb32-559" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-560"><a href="#cb32-560" aria-hidden="true" tabindex="-1"></a>    subgraph model[<span class="ot">"</span><span class="st">Model</span><span class="ot">"</span>]</span>
+<span id="cb32-561"><a href="#cb32-561" aria-hidden="true" tabindex="-1"></a>        embed[<span class="ot">"</span><span class="st">Embeddings&lt;br/&gt;(Module 04)</span><span class="ot">"</span>]</span>
+<span id="cb32-562"><a href="#cb32-562" aria-hidden="true" tabindex="-1"></a>        transform[<span class="ot">"</span><span class="st">Transformer&lt;br/&gt;(Module 06)</span><span class="ot">"</span>]</span>
+<span id="cb32-563"><a href="#cb32-563" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb32-564"><a href="#cb32-564" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-565"><a href="#cb32-565" aria-hidden="true" tabindex="-1"></a>    subgraph output[<span class="ot">"</span><span class="st">Output</span><span class="ot">"</span>]</span>
+<span id="cb32-566"><a href="#cb32-566" aria-hidden="true" tabindex="-1"></a>        decode[<span class="ot">"</span><span class="st">Decode IDs&lt;br/&gt;back to text</span><span class="ot">"</span>]</span>
+<span id="cb32-567"><a href="#cb32-567" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb32-568"><a href="#cb32-568" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-569"><a href="#cb32-569" aria-hidden="true" tabindex="-1"></a>    text --&gt; <span class="fu">split</span> --&gt; lookup --&gt; embed --&gt; transform --&gt; decode</span>
+<span id="cb32-570"><a href="#cb32-570" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-571"><a href="#cb32-571" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-572"><a href="#cb32-572" aria-hidden="true" tabindex="-1"></a><span class="fu">## Summary</span></span>
+<span id="cb32-573"><a href="#cb32-573" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-574"><a href="#cb32-574" aria-hidden="true" tabindex="-1"></a>Key takeaways:</span>
+<span id="cb32-575"><a href="#cb32-575" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-576"><a href="#cb32-576" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**BPE learns subword units** by iteratively merging the most frequent adjacent token pairs</span>
+<span id="cb32-577"><a href="#cb32-577" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Vocabulary size** is a tradeoff: larger = shorter sequences but more parameters and sparse token usage</span>
+<span id="cb32-578"><a href="#cb32-578" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Special tokens** (BOS, EOS, PAD, UNK) serve critical roles in the LLM pipeline</span>
+<span id="cb32-579"><a href="#cb32-579" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Code patterns** emerge naturally (def, self., return, indentation) when trained on code</span>
+<span id="cb32-580"><a href="#cb32-580" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>**Round-trip guarantee**: encode -&gt; decode should perfectly reconstruct the original text</span>
+<span id="cb32-581"><a href="#cb32-581" aria-hidden="true" tabindex="-1"></a><span class="ss">6. </span>**Production tokenizers** use byte-level BPE to handle any Unicode character without UNK tokens</span>
+<span id="cb32-582"><a href="#cb32-582" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-583"><a href="#cb32-583" aria-hidden="true" tabindex="-1"></a><span class="fu">### What We Simplified</span></span>
+<span id="cb32-584"><a href="#cb32-584" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-585"><a href="#cb32-585" aria-hidden="true" tabindex="-1"></a>Our implementation differs from production tokenizers in several ways:</span>
+<span id="cb32-586"><a href="#cb32-586" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-587"><a href="#cb32-587" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Our Tokenizer <span class="pp">|</span> Production Tokenizers <span class="pp">|</span></span>
+<span id="cb32-588"><a href="#cb32-588" aria-hidden="true" tabindex="-1"></a><span class="pp">|---------------|----------------------|</span></span>
+<span id="cb32-589"><a href="#cb32-589" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Character-level BPE <span class="pp">|</span> Byte-level BPE (handles any UTF-8) <span class="pp">|</span></span>
+<span id="cb32-590"><a href="#cb32-590" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Python dict lookups <span class="pp">|</span> Optimized Rust/C++ (tiktoken is 10x+ faster) <span class="pp">|</span></span>
+<span id="cb32-591"><a href="#cb32-591" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> No regex pre-tokenization <span class="pp">|</span> GPT uses regex to split contractions, numbers specially <span class="pp">|</span></span>
+<span id="cb32-592"><a href="#cb32-592" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Simple word splitting <span class="pp">|</span> Careful handling of whitespace, punctuation <span class="pp">|</span></span>
+<span id="cb32-593"><a href="#cb32-593" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-594"><a href="#cb32-594" aria-hidden="true" tabindex="-1"></a><span class="fu">### Practical Implications</span></span>
+<span id="cb32-595"><a href="#cb32-595" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-596"><a href="#cb32-596" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Context length**: A 4096-token context window holds varying amounts of text depending on tokenization efficiency</span>
+<span id="cb32-597"><a href="#cb32-597" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Cost**: API pricing is per-token, so tokenization directly affects cost</span>
+<span id="cb32-598"><a href="#cb32-598" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Multilingual**: Tokenizers trained on English use more tokens for other languages (2-3x for some)</span>
+<span id="cb32-599"><a href="#cb32-599" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Code vs prose**: Code often tokenizes inefficiently (many single-character tokens for syntax)</span>
+<span id="cb32-600"><a href="#cb32-600" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-601"><a href="#cb32-601" aria-hidden="true" tabindex="-1"></a><span class="fu">## What's Next</span></span>
+<span id="cb32-602"><a href="#cb32-602" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-603"><a href="#cb32-603" aria-hidden="true" tabindex="-1"></a>In <span class="co">[</span><span class="ot">Module 04: Embeddings</span><span class="co">](../m04_embeddings/lesson.qmd)</span>, we'll learn how to convert token IDs into dense vectors that capture meaning. Each token becomes a learnable vector in high-dimensional space.</span>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

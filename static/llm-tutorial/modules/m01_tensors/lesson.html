@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Module 01: Tensors – LLM From Scratch</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<meta name="mermaid-theme" content="default">
+<script src="../../site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="../../site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="../../site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">LLM From Scratch</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-modules" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Modules</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-modules">    
+        <li>
+    <a class="dropdown-item" href="../../modules/m01_tensors/lesson.html">
+ <span class="dropdown-text">01 Tensors</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../modules/m02_autograd/lesson.html">
+ <span class="dropdown-text">02 Autograd</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../modules/m03_tokenization/lesson.html">
+ <span class="dropdown-text">03 Tokenization</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../modules/m04_embeddings/lesson.html">
+ <span class="dropdown-text">04 Embeddings</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../modules/m05_attention/lesson.html">
+ <span class="dropdown-text">05 Attention</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../modules/m06_transformer/lesson.html">
+ <span class="dropdown-text">06 Transformer</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../modules/m07_training/lesson.html">
+ <span class="dropdown-text">07 Training</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../modules/m08_generation/lesson.html">
+ <span class="dropdown-text">08 Generation</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a>
+  <ul class="collapse">
+  <li><a href="#what-makes-pytorch-tensors-special" id="toc-what-makes-pytorch-tensors-special" class="nav-link" data-scroll-target="#what-makes-pytorch-tensors-special">What Makes PyTorch Tensors Special</a></li>
+  </ul></li>
+  <li><a href="#tensor-dimensions" id="toc-tensor-dimensions" class="nav-link" data-scroll-target="#tensor-dimensions">Tensor Dimensions</a></li>
+  <li><a href="#llm-tensor-shapes" id="toc-llm-tensor-shapes" class="nav-link" data-scroll-target="#llm-tensor-shapes">LLM Tensor Shapes</a></li>
+  <li><a href="#the-math" id="toc-the-math" class="nav-link" data-scroll-target="#the-math">The Math</a>
+  <ul class="collapse">
+  <li><a href="#element-wise-operations" id="toc-element-wise-operations" class="nav-link" data-scroll-target="#element-wise-operations">Element-wise Operations</a></li>
+  <li><a href="#matrix-multiplication" id="toc-matrix-multiplication" class="nav-link" data-scroll-target="#matrix-multiplication">Matrix Multiplication</a></li>
+  <li><a href="#broadcasting" id="toc-broadcasting" class="nav-link" data-scroll-target="#broadcasting">Broadcasting</a></li>
+  </ul></li>
+  <li><a href="#code-walkthrough" id="toc-code-walkthrough" class="nav-link" data-scroll-target="#code-walkthrough">Code Walkthrough</a>
+  <ul class="collapse">
+  <li><a href="#creating-tensors" id="toc-creating-tensors" class="nav-link" data-scroll-target="#creating-tensors">Creating Tensors</a></li>
+  <li><a href="#data-types-dtypes" id="toc-data-types-dtypes" class="nav-link" data-scroll-target="#data-types-dtypes">Data Types (dtypes)</a></li>
+  <li><a href="#reshaping" id="toc-reshaping" class="nav-link" data-scroll-target="#reshaping">Reshaping</a></li>
+  <li><a href="#memory-layout-view-vs-reshape-vs-contiguous" id="toc-memory-layout-view-vs-reshape-vs-contiguous" class="nav-link" data-scroll-target="#memory-layout-view-vs-reshape-vs-contiguous">Memory Layout: view vs reshape vs contiguous</a></li>
+  <li><a href="#matrix-multiplication-1" id="toc-matrix-multiplication-1" class="nav-link" data-scroll-target="#matrix-multiplication-1">Matrix Multiplication</a></li>
+  <li><a href="#softmax-converting-scores-to-probabilities" id="toc-softmax-converting-scores-to-probabilities" class="nav-link" data-scroll-target="#softmax-converting-scores-to-probabilities">Softmax: Converting Scores to Probabilities</a></li>
+  <li><a href="#common-operations-in-llms" id="toc-common-operations-in-llms" class="nav-link" data-scroll-target="#common-operations-in-llms">Common Operations in LLMs</a></li>
+  <li><a href="#broadcasting-in-action" id="toc-broadcasting-in-action" class="nav-link" data-scroll-target="#broadcasting-in-action">Broadcasting in Action</a></li>
+  <li><a href="#device-management-cpu-vs-gpu" id="toc-device-management-cpu-vs-gpu" class="nav-link" data-scroll-target="#device-management-cpu-vs-gpu">Device Management (CPU vs GPU)</a></li>
+  </ul></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises">Exercises</a>
+  <ul class="collapse">
+  <li><a href="#exercise-1-create-an-embedding-lookup" id="toc-exercise-1-create-an-embedding-lookup" class="nav-link" data-scroll-target="#exercise-1-create-an-embedding-lookup">Exercise 1: Create an Embedding Lookup</a></li>
+  <li><a href="#exercise-2-simulate-simple-attention" id="toc-exercise-2-simulate-simple-attention" class="nav-link" data-scroll-target="#exercise-2-simulate-simple-attention">Exercise 2: Simulate Simple Attention</a></li>
+  <li><a href="#exercise-3-apply-attention" id="toc-exercise-3-apply-attention" class="nav-link" data-scroll-target="#exercise-3-apply-attention">Exercise 3: Apply Attention</a></li>
+  </ul></li>
+  <li><a href="#common-pitfalls" id="toc-common-pitfalls" class="nav-link" data-scroll-target="#common-pitfalls">Common Pitfalls</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
+  <li><a href="#whats-next" id="toc-whats-next" class="nav-link" data-scroll-target="#whats-next">What’s Next</a></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="lesson.ipynb" download="lesson.ipynb"><i class="bi bi-journal-code"></i>Jupyter</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">Module 01: Tensors</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>The foundation of everything in deep learning. Before we can build a language model, we need to understand tensors - the data structure that holds all our numbers.</p>
+<p>A <strong>tensor</strong> is a multi-dimensional array of numbers. If you’ve used NumPy arrays, you already know what tensors are - PyTorch tensors are nearly identical, but with GPU acceleration and automatic differentiation built in.</p>
+<p>Why do we need them for LLMs?</p>
+<ul>
+<li><strong>Text becomes numbers</strong>: Every word/token gets converted to a list of numbers (a vector)</li>
+<li><strong>Batching</strong>: We process multiple sequences at once for efficiency</li>
+<li><strong>Matrix operations</strong>: Attention, embeddings, and neural network layers are all matrix multiplications</li>
+</ul>
+<section id="what-makes-pytorch-tensors-special" class="level3">
+<h3 class="anchored" data-anchor-id="what-makes-pytorch-tensors-special">What Makes PyTorch Tensors Special</h3>
+<p>Unlike NumPy arrays, PyTorch tensors provide:</p>
+<ol type="1">
+<li><strong>GPU acceleration</strong>: Seamlessly move computations to GPU for 10-100x speedup</li>
+<li><strong>Automatic differentiation</strong>: Track operations to compute gradients (covered in Module 02)</li>
+<li><strong>Optimized kernels</strong>: BLAS/cuBLAS backends for highly efficient linear algebra</li>
+</ol>
+</section>
+</section>
+<section id="tensor-dimensions" class="level2">
+<h2 class="anchored" data-anchor-id="tensor-dimensions">Tensor Dimensions</h2>
+<p>Think of tensors by their dimensions:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart TB
+    subgraph scalar["0D: Scalar"]
+        s["5"]
+    end
+    subgraph vector["1D: Vector"]
+        v["[1, 2, 3, 4, 5]"]
+    end
+    subgraph matrix["2D: Matrix"]
+        m["[[1, 2, 3],&lt;br/&gt;[4, 5, 6]]"]
+    end
+    subgraph tensor3d["3D: Tensor"]
+        t["Stack of matrices&lt;br/&gt;(batch, seq, embed)"]
+    end
+
+    scalar --&gt; vector --&gt; matrix --&gt; tensor3d
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<p>The shape of a tensor tells you what it represents. In an LLM:</p>
+<ul>
+<li><code>(vocab_size,)</code> - A 1D tensor: scores for each word in vocabulary</li>
+<li><code>(seq_len, embed_dim)</code> - A 2D tensor: one embedding vector per token</li>
+<li><code>(batch, seq_len, embed_dim)</code> - A 3D tensor: multiple sequences at once</li>
+</ul>
+</section>
+<section id="llm-tensor-shapes" class="level2">
+<h2 class="anchored" data-anchor-id="llm-tensor-shapes">LLM Tensor Shapes</h2>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart LR
+    subgraph tokens["Token IDs"]
+        tid["(batch, seq_len)&lt;br/&gt;[[101, 2054, 2003],&lt;br/&gt;[101, 7592, 102]]"]
+    end
+    subgraph embeds["Embeddings"]
+        emb["(batch, seq, embed_dim)&lt;br/&gt;Each token → 64-dim vector"]
+    end
+    subgraph attn["Attention"]
+        att["(batch, heads, seq, seq)&lt;br/&gt;Each head: seq×seq matrix"]
+    end
+
+    tokens --&gt; embeds --&gt; attn
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</section>
+<section id="the-math" class="level2">
+<h2 class="anchored" data-anchor-id="the-math">The Math</h2>
+<section id="element-wise-operations" class="level3">
+<h3 class="anchored" data-anchor-id="element-wise-operations">Element-wise Operations</h3>
+<p>Apply the same operation to every element:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>[<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>] <span class="op">+</span> [<span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>] <span class="op">=</span> [<span class="dv">5</span>, <span class="dv">7</span>, <span class="dv">9</span>]</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>[<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>] <span class="op">*</span> <span class="dv">2</span> <span class="op">=</span> [<span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">6</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="matrix-multiplication" class="level3">
+<h3 class="anchored" data-anchor-id="matrix-multiplication">Matrix Multiplication</h3>
+<p>The core operation of neural networks. For matrices A (m×n) and B (n×p):</p>
+<pre><code>C = A @ B  →  C is (m×p)
+C[i,j] = sum(A[i,k] * B[k,j] for k in range(n))</code></pre>
+</section>
+<section id="broadcasting" class="level3">
+<h3 class="anchored" data-anchor-id="broadcasting">Broadcasting</h3>
+<p>When shapes don’t match, PyTorch automatically expands smaller tensors:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart LR
+    subgraph input["Batch (2,4,3)"]
+        batch["[[a,b,c], ...]"]
+    end
+    subgraph bias["Bias (3,)"]
+        b["[x, y, z]"]
+    end
+    subgraph result["Result (2,4,3)"]
+        res["[[a+x,b+y,c+z], ...]"]
+    end
+
+    input --&gt; |"+"| result
+    bias --&gt; |"broadcasts"| result
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<p>Broadcasting rules:</p>
+<ol type="1">
+<li>Align shapes from the right</li>
+<li>Dimensions must match OR be 1 (or missing)</li>
+<li>Size-1 dimensions get repeated to match</li>
+</ol>
+</section>
+</section>
+<section id="code-walkthrough" class="level2">
+<h2 class="anchored" data-anchor-id="code-walkthrough">Code Walkthrough</h2>
+<p>Let’s explore tensors interactively:</p>
+<div id="e2bcb777" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"PyTorch version: </span><span class="sc">{</span>torch<span class="sc">.</span>__version__<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>device <span class="op">=</span> <span class="st">"mps"</span> <span class="cf">if</span> torch.backends.mps.is_available() <span class="cf">else</span> <span class="st">"cpu"</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Device: </span><span class="sc">{</span>device<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>PyTorch version: 2.9.1
+Device: mps</code></pre>
+</div>
+</div>
+<section id="creating-tensors" class="level3">
+<h3 class="anchored" data-anchor-id="creating-tensors">Creating Tensors</h3>
+<div id="66cb4811" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># From a list</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> torch.tensor([[<span class="fl">1.0</span>, <span class="fl">2.0</span>, <span class="fl">3.0</span>], [<span class="fl">4.0</span>, <span class="fl">5.0</span>, <span class="fl">6.0</span>]])</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Shape: </span><span class="sc">{</span>x<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Dtype: </span><span class="sc">{</span>x<span class="sc">.</span>dtype<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Device: </span><span class="sc">{</span>x<span class="sc">.</span>device<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(x)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Shape: torch.Size([2, 3])
+Dtype: torch.float32
+Device: cpu
+tensor([[1., 2., 3.],
+        [4., 5., 6.]])</code></pre>
+</div>
+</div>
+<div id="4d0c2364" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Random tensors (common for initialization)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>random_tensor <span class="op">=</span> torch.randn(<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>)  <span class="co"># Normal distribution (mean=0, std=1)</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Random tensor shape: </span><span class="sc">{</span>random_tensor<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Mean: </span><span class="sc">{</span>random_tensor<span class="sc">.</span>mean()<span class="sc">:.4f}</span><span class="ss">, Std: </span><span class="sc">{</span>random_tensor<span class="sc">.</span>std()<span class="sc">:.4f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Random tensor shape: torch.Size([2, 3, 4])
+Mean: -0.1683, Std: 1.0972</code></pre>
+</div>
+</div>
+</section>
+<section id="data-types-dtypes" class="level3">
+<h3 class="anchored" data-anchor-id="data-types-dtypes">Data Types (dtypes)</h3>
+<p>Choosing the right dtype affects memory usage and numerical precision:</p>
+<div id="a68b611e" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Default is float32 (32 bits = 4 bytes per number)</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>t32 <span class="op">=</span> torch.randn(<span class="dv">1000</span>, <span class="dv">1000</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"float32: </span><span class="sc">{</span>t32<span class="sc">.</span>element_size()<span class="sc">}</span><span class="ss"> bytes per element, total: </span><span class="sc">{</span>t32<span class="sc">.</span>numel() <span class="op">*</span> t32<span class="sc">.</span>element_size() <span class="op">/</span> <span class="fl">1e6</span><span class="sc">:.1f}</span><span class="ss"> MB"</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co"># float16 uses half the memory but lower precision</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>t16 <span class="op">=</span> torch.randn(<span class="dv">1000</span>, <span class="dv">1000</span>, dtype<span class="op">=</span>torch.float16)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"float16: </span><span class="sc">{</span>t16<span class="sc">.</span>element_size()<span class="sc">}</span><span class="ss"> bytes per element, total: </span><span class="sc">{</span>t16<span class="sc">.</span>numel() <span class="op">*</span> t16<span class="sc">.</span>element_size() <span class="op">/</span> <span class="fl">1e6</span><span class="sc">:.1f}</span><span class="ss"> MB"</span>)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co"># bfloat16 is popular for training (better range than float16)</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>tbf16 <span class="op">=</span> torch.randn(<span class="dv">1000</span>, <span class="dv">1000</span>, dtype<span class="op">=</span>torch.bfloat16)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"bfloat16: </span><span class="sc">{</span>tbf16<span class="sc">.</span>element_size()<span class="sc">}</span><span class="ss"> bytes per element"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>float32: 4 bytes per element, total: 4.0 MB
+float16: 2 bytes per element, total: 2.0 MB
+bfloat16: 2 bytes per element</code></pre>
+</div>
+</div>
+<p><strong>When to use each:</strong></p>
+<ul>
+<li><strong>float32</strong>: Default, good for learning and debugging</li>
+<li><strong>float16</strong>: Inference on GPUs with Tensor Cores, half memory</li>
+<li><strong>bfloat16</strong>: Training large models, better numerical stability than float16</li>
+</ul>
+</section>
+<section id="reshaping" class="level3">
+<h3 class="anchored" data-anchor-id="reshaping">Reshaping</h3>
+<p>Reshaping is critical for multi-head attention, where we split the embedding dimension across multiple heads:</p>
+<div id="280f4e6f" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Reshape for multi-head attention</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>batch, seq, embed <span class="op">=</span> <span class="dv">4</span>, <span class="dv">32</span>, <span class="dv">64</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>num_heads <span class="op">=</span> <span class="dv">8</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>head_dim <span class="op">=</span> embed <span class="op">//</span> num_heads</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> torch.randn(batch, seq, embed)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Original: </span><span class="sc">{</span>x<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Split into heads</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>x_heads <span class="op">=</span> x.view(batch, seq, num_heads, head_dim)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"After view: </span><span class="sc">{</span>x_heads<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Transpose for attention computation</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>x_heads <span class="op">=</span> x_heads.transpose(<span class="dv">1</span>, <span class="dv">2</span>)  <span class="co"># (batch, heads, seq, head_dim)</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"After transpose: </span><span class="sc">{</span>x_heads<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Original: torch.Size([4, 32, 64])
+After view: torch.Size([4, 32, 8, 8])
+After transpose: torch.Size([4, 8, 32, 8])</code></pre>
+</div>
+</div>
+</section>
+<section id="memory-layout-view-vs-reshape-vs-contiguous" class="level3">
+<h3 class="anchored" data-anchor-id="memory-layout-view-vs-reshape-vs-contiguous">Memory Layout: view vs reshape vs contiguous</h3>
+<p>Understanding memory layout helps avoid subtle bugs:</p>
+<div id="e431bb76" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># view() requires contiguous memory - it's a zero-copy operation</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> torch.randn(<span class="dv">3</span>, <span class="dv">4</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Original is contiguous: </span><span class="sc">{</span>x<span class="sc">.</span>is_contiguous()<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Transpose creates a non-contiguous view (same memory, different strides)</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>x_t <span class="op">=</span> x.transpose(<span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Transposed is contiguous: </span><span class="sc">{</span>x_t<span class="sc">.</span>is_contiguous()<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="co"># view() fails on non-contiguous tensors</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    x_t.view(<span class="dv">12</span>)  <span class="co"># This will fail</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> <span class="pp">RuntimeError</span> <span class="im">as</span> e:</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="co"># contiguous() makes a copy with proper memory layout</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>x_t_contig <span class="op">=</span> x_t.contiguous()</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"After contiguous(): </span><span class="sc">{</span>x_t_contig<span class="sc">.</span>is_contiguous()<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>x_t_contig.view(<span class="dv">12</span>)  <span class="co"># Now it works</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"view() works after contiguous()"</span>)</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a><span class="co"># reshape() handles this automatically (but may copy)</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>reshaped <span class="op">=</span> x_t.reshape(<span class="dv">12</span>)  <span class="co"># Always works</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"reshape() auto-handles non-contiguous: </span><span class="sc">{</span>reshaped<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Original is contiguous: True
+Transposed is contiguous: False
+Error: view size is not compatible with input tensor's size and stride (at least one dimension spans across two contiguous subspaces). Use .reshape(...) instead.
+After contiguous(): True
+view() works after contiguous()
+reshape() auto-handles non-contiguous: torch.Size([12])</code></pre>
+</div>
+</div>
+<p><strong>Rule of thumb</strong>: Use <code>reshape()</code> unless you specifically need zero-copy behavior.</p>
+</section>
+<section id="matrix-multiplication-1" class="level3">
+<h3 class="anchored" data-anchor-id="matrix-multiplication-1">Matrix Multiplication</h3>
+<p>Matrix multiplication is the workhorse of neural networks. The <code>@</code> operator (or <code>torch.matmul</code>) handles batched operations automatically:</p>
+<div id="d3c351a4" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulating Q @ K^T in attention</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>Q <span class="op">=</span> torch.randn(<span class="dv">2</span>, <span class="dv">8</span>, <span class="dv">32</span>, <span class="dv">8</span>)  <span class="co"># (batch, heads, seq, head_dim)</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>K <span class="op">=</span> torch.randn(<span class="dv">2</span>, <span class="dv">8</span>, <span class="dv">32</span>, <span class="dv">8</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Attention scores</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>scores <span class="op">=</span> Q <span class="op">@</span> K.transpose(<span class="op">-</span><span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>)  <span class="co"># (batch, heads, seq, seq)</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Q shape: </span><span class="sc">{</span>Q<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"K^T shape: </span><span class="sc">{</span>K<span class="sc">.</span>transpose(<span class="op">-</span><span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>)<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Scores shape: </span><span class="sc">{</span>scores<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Q shape: torch.Size([2, 8, 32, 8])
+K^T shape: torch.Size([2, 8, 8, 32])
+Scores shape: torch.Size([2, 8, 32, 32])</code></pre>
+</div>
+</div>
+<p><strong>Key insight</strong>: The last two dimensions follow standard matrix multiplication rules <code>(m, k) @ (k, n) -&gt; (m, n)</code>, while leading dimensions are broadcasted/batched.</p>
+</section>
+<section id="softmax-converting-scores-to-probabilities" class="level3">
+<h3 class="anchored" data-anchor-id="softmax-converting-scores-to-probabilities">Softmax: Converting Scores to Probabilities</h3>
+<p>Softmax takes a vector of arbitrary real numbers (<strong>logits</strong>) and converts them into a <strong>probability distribution</strong> — values between 0 and 1 that sum to 1.</p>
+<p><span class="math display">\[\text{softmax}(z_i) = \frac{e^{z_i}}{\sum_{j=1}^{n} e^{z_j}}\]</span></p>
+<p>The exponential function amplifies differences — larger values get disproportionately larger weights:</p>
+<div id="a4877d7c" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>logits <span class="op">=</span> torch.tensor([<span class="fl">2.0</span>, <span class="fl">1.0</span>, <span class="fl">0.1</span>])</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>probs <span class="op">=</span> torch.softmax(logits, dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Logits: </span><span class="sc">{</span>logits<span class="sc">.</span>tolist()<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Probs:  </span><span class="sc">{</span>[<span class="ss">f'</span><span class="sc">{</span>p<span class="sc">:.3f}</span><span class="ss">'</span> <span class="cf">for</span> p <span class="kw">in</span> probs.tolist()]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Sum:    </span><span class="sc">{</span>probs<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">:.3f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Logits: [2.0, 1.0, 0.10000000149011612]
+Probs:  ['0.659', '0.242', '0.099']
+Sum:    1.000</code></pre>
+</div>
+</div>
+<p>The highest logit (2.0) gets ~65% of the probability mass. This is how attention weights and next-token predictions work.</p>
+<p><strong>The <code>dim</code> parameter matters</strong> — it specifies which dimension sums to 1:</p>
+<div id="5d4a3f4d" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Batch of scores: (batch=2, seq=3)</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>scores <span class="op">=</span> torch.randn(<span class="dv">2</span>, <span class="dv">3</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>weights <span class="op">=</span> torch.softmax(scores, dim<span class="op">=-</span><span class="dv">1</span>)  <span class="co"># Each row sums to 1</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Row sums: </span><span class="sc">{</span>weights<span class="sc">.</span><span class="bu">sum</span>(dim<span class="op">=-</span><span class="dv">1</span>)<span class="sc">}</span><span class="ss">"</span>)  <span class="co"># [1.0, 1.0]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Row sums: tensor([1.0000, 1.0000])</code></pre>
+</div>
+</div>
+<p><strong>Tip</strong>: Always use <code>torch.softmax()</code> — it handles numerical stability automatically. For details on temperature scaling, see <a href="../../modules/m08_generation/lesson.html">Module 08: Generation</a>. For softmax in attention, see <a href="../../modules/m05_attention/lesson.html">Module 05: Attention</a>.</p>
+</section>
+<section id="common-operations-in-llms" class="level3">
+<h3 class="anchored" data-anchor-id="common-operations-in-llms">Common Operations in LLMs</h3>
+<p>These operations appear everywhere in transformer models:</p>
+<div id="af8e5fea" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Layer Normalization (normalizes features, not batch)</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> torch.randn(<span class="dv">4</span>, <span class="dv">32</span>, <span class="dv">64</span>)  <span class="co"># (batch, seq, embed)</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>mean <span class="op">=</span> x.mean(dim<span class="op">=-</span><span class="dv">1</span>, keepdim<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>std <span class="op">=</span> x.std(dim<span class="op">=-</span><span class="dv">1</span>, keepdim<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>x_norm <span class="op">=</span> (x <span class="op">-</span> mean) <span class="op">/</span> (std <span class="op">+</span> <span class="fl">1e-5</span>)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"LayerNorm output shape: </span><span class="sc">{</span>x_norm<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Mean per token: </span><span class="sc">{</span>x_norm<span class="sc">.</span>mean(dim<span class="op">=-</span><span class="dv">1</span>)[<span class="dv">0</span>, :<span class="dv">3</span>]<span class="sc">}</span><span class="ss">"</span>)  <span class="co"># Should be ~0</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Linear projection (the most common operation)</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>W <span class="op">=</span> torch.randn(<span class="dv">64</span>, <span class="dv">256</span>)  <span class="co"># (in_features, out_features)</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> torch.randn(<span class="dv">256</span>)       <span class="co"># (out_features,)</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> torch.randn(<span class="dv">4</span>, <span class="dv">32</span>, <span class="dv">64</span>) <span class="co"># (batch, seq, in_features)</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>out <span class="op">=</span> x <span class="op">@</span> W <span class="op">+</span> b            <span class="co"># Broadcasting adds bias</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Linear output shape: </span><span class="sc">{</span>out<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>LayerNorm output shape: torch.Size([4, 32, 64])
+Mean per token: tensor([-5.5879e-09,  2.4214e-08, -1.4901e-08])
+Linear output shape: torch.Size([4, 32, 256])</code></pre>
+</div>
+</div>
+</section>
+<section id="broadcasting-in-action" class="level3">
+<h3 class="anchored" data-anchor-id="broadcasting-in-action">Broadcasting in Action</h3>
+<div id="39d6ecea" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Adding bias to all tokens in a batch</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>embeddings <span class="op">=</span> torch.randn(<span class="dv">4</span>, <span class="dv">32</span>, <span class="dv">64</span>)  <span class="co"># (batch, seq, embed)</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>bias <span class="op">=</span> torch.randn(<span class="dv">64</span>)               <span class="co"># (embed,)</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> embeddings <span class="op">+</span> bias  <span class="co"># Broadcasts!</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Embeddings: </span><span class="sc">{</span>embeddings<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Bias: </span><span class="sc">{</span>bias<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Result: </span><span class="sc">{</span>result<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Embeddings: torch.Size([4, 32, 64])
+Bias: torch.Size([64])
+Result: torch.Size([4, 32, 64])</code></pre>
+</div>
+</div>
+</section>
+<section id="device-management-cpu-vs-gpu" class="level3">
+<h3 class="anchored" data-anchor-id="device-management-cpu-vs-gpu">Device Management (CPU vs GPU)</h3>
+<p>Moving tensors between devices is essential for GPU acceleration:</p>
+<div id="61a1a045" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check available devices</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"MPS available: </span><span class="sc">{</span>torch<span class="sc">.</span>backends<span class="sc">.</span>mps<span class="sc">.</span>is_available()<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"CUDA available: </span><span class="sc">{</span>torch<span class="sc">.</span>cuda<span class="sc">.</span>is_available()<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Create tensor on specific device</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>device <span class="op">=</span> <span class="st">"mps"</span> <span class="cf">if</span> torch.backends.mps.is_available() <span class="cf">else</span> <span class="st">"cpu"</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> torch.randn(<span class="dv">1000</span>, <span class="dv">1000</span>, device<span class="op">=</span>device)</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Tensor device: </span><span class="sc">{</span>x<span class="sc">.</span>device<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Move existing tensor to device</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> torch.randn(<span class="dv">1000</span>, <span class="dv">1000</span>)  <span class="co"># Created on CPU by default</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> y.to(device)             <span class="co"># Move to GPU</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"After .to(): </span><span class="sc">{</span>y<span class="sc">.</span>device<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>MPS available: True
+CUDA available: False
+Tensor device: mps:0
+After .to(): mps:0</code></pre>
+</div>
+</div>
+<p><strong>Common pitfall</strong>: Operations require tensors on the same device:</p>
+<div id="b6aa1563" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This would fail if devices differ:</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="co"># z = x_cpu + x_gpu  # RuntimeError!</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Always ensure tensors are on the same device</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>a <span class="op">=</span> torch.randn(<span class="dv">100</span>, device<span class="op">=</span>device)</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> torch.randn(<span class="dv">100</span>, device<span class="op">=</span>device)</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> a <span class="op">+</span> b  <span class="co"># Works!</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Both on </span><span class="sc">{</span>device<span class="sc">}</span><span class="ss">: operation succeeded"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Both on mps: operation succeeded</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="exercises" class="level2">
+<h2 class="anchored" data-anchor-id="exercises">Exercises</h2>
+<section id="exercise-1-create-an-embedding-lookup" class="level3">
+<h3 class="anchored" data-anchor-id="exercise-1-create-an-embedding-lookup">Exercise 1: Create an Embedding Lookup</h3>
+<div id="576fc8fe" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a vocabulary embedding table</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>vocab_size <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>embed_dim <span class="op">=</span> <span class="dv">32</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>embedding_table <span class="op">=</span> torch.randn(vocab_size, embed_dim)</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Embedding table: </span><span class="sc">{</span>embedding_table<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Look up embeddings for token IDs</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>token_ids <span class="op">=</span> torch.tensor([<span class="dv">5</span>, <span class="dv">23</span>, <span class="dv">7</span>, <span class="dv">42</span>])</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>embeddings <span class="op">=</span> embedding_table[token_ids]</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Token IDs: </span><span class="sc">{</span>token_ids<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Embeddings shape: </span><span class="sc">{</span>embeddings<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Embedding table: torch.Size([100, 32])
+Token IDs: tensor([ 5, 23,  7, 42])
+Embeddings shape: torch.Size([4, 32])</code></pre>
+</div>
+</div>
+</section>
+<section id="exercise-2-simulate-simple-attention" class="level3">
+<h3 class="anchored" data-anchor-id="exercise-2-simulate-simple-attention">Exercise 2: Simulate Simple Attention</h3>
+<div id="3ada0a55" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>seq_len <span class="op">=</span> <span class="dv">6</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>embed_dim <span class="op">=</span> <span class="dv">8</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Token embeddings</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>tokens <span class="op">=</span> torch.randn(seq_len, embed_dim)</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute attention scores (dot product similarity)</span></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>scores <span class="op">=</span> tokens <span class="op">@</span> tokens.T</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Attention scores shape: </span><span class="sc">{</span>scores<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Apply softmax to get weights</span></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>attention_weights <span class="op">=</span> torch.softmax(scores, dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize</span></span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">5</span>))</span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>plt.imshow(attention_weights.detach().numpy(), cmap<span class="op">=</span><span class="st">'Blues'</span>)</span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>plt.colorbar(label<span class="op">=</span><span class="st">'Attention Weight'</span>)</span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Simple Attention Pattern'</span>)</span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Key Token'</span>)</span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Query Token'</span>)</span>
+<span id="cb31-23"><a href="#cb31-23" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Attention scores shape: torch.Size([6, 6])</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="lesson_files/figure-html/cell-16-output-2.png" width="502" height="437" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="exercise-3-apply-attention" class="level3">
+<h3 class="anchored" data-anchor-id="exercise-3-apply-attention">Exercise 3: Apply Attention</h3>
+<div id="85cde821" class="cell" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Weighted combination of values</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> attention_weights <span class="op">@</span> tokens</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Input: </span><span class="sc">{</span>tokens<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Weights: </span><span class="sc">{</span>attention_weights<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Output: </span><span class="sc">{</span>output<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Each output token is a weighted average of ALL input tokens!"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Input: torch.Size([6, 8])
+Weights: torch.Size([6, 6])
+Output: torch.Size([6, 8])
+
+Each output token is a weighted average of ALL input tokens!</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="common-pitfalls" class="level2">
+<h2 class="anchored" data-anchor-id="common-pitfalls">Common Pitfalls</h2>
+<p>Before moving on, be aware of these common mistakes:</p>
+<ol type="1">
+<li><strong>Shape mismatches</strong>: Always print shapes when debugging. Most errors come from unexpected dimensions.</li>
+<li><strong>Device mismatches</strong>: Tensors must be on the same device for operations. Use <code>.to(device)</code> consistently.</li>
+<li><strong>In-place operations</strong>: Methods ending in <code>_</code> (like <code>add_()</code>) modify tensors in-place, which can break gradient computation.</li>
+<li><strong>Forgetting contiguous()</strong>: After transpose/permute, call <code>.contiguous()</code> before <code>.view()</code>.</li>
+<li><strong>dtype mismatches</strong>: Operations between float32 and float16 may silently upcast or fail.</li>
+</ol>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<p>Key takeaways:</p>
+<ol type="1">
+<li><strong>Tensors are multi-dimensional arrays</strong> - their shape tells you what they represent</li>
+<li><strong>Broadcasting</strong> automatically expands smaller tensors to match larger ones</li>
+<li><strong>Matrix multiplication</strong> is the core operation - inner dimensions must match</li>
+<li><strong>Reshaping</strong> reorganizes dimensions without changing total elements</li>
+<li><strong>Memory layout matters</strong> - understand contiguous vs strided for efficient operations</li>
+<li><strong>Device placement</strong> - use GPU (MPS/CUDA) for 10-100x speedup on large tensors</li>
+<li><strong>Data types</strong> - float32 for learning, float16/bfloat16 for production</li>
+</ol>
+</section>
+<section id="whats-next" class="level2">
+<h2 class="anchored" data-anchor-id="whats-next">What’s Next</h2>
+<p>In <a href="../../modules/m02_autograd/lesson.html">Module 02: Autograd</a>, we’ll see how PyTorch automatically computes gradients through all these operations - the magic that makes neural networks trainable.</p>
+
+
+<!-- -->
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb35" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Module 01: Tensors"</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="co">  html:</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a><span class="co">    code-fold: false</span></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a><span class="co">    toc: true</span></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a><span class="co">  ipynb: default</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a><span class="an">jupyter:</span><span class="co"> python3</span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a><span class="fu">## Introduction</span></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>The foundation of everything in deep learning. Before we can build a language model, we need to understand tensors - the data structure that holds all our numbers.</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>A **tensor** is a multi-dimensional array of numbers. If you've used NumPy arrays, you already know what tensors are - PyTorch tensors are nearly identical, but with GPU acceleration and automatic differentiation built in.</span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>Why do we need them for LLMs?</span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Text becomes numbers**: Every word/token gets converted to a list of numbers (a vector)</span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Batching**: We process multiple sequences at once for efficiency</span>
+<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Matrix operations**: Attention, embeddings, and neural network layers are all matrix multiplications</span>
+<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-23"><a href="#cb35-23" aria-hidden="true" tabindex="-1"></a><span class="fu">### What Makes PyTorch Tensors Special</span></span>
+<span id="cb35-24"><a href="#cb35-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-25"><a href="#cb35-25" aria-hidden="true" tabindex="-1"></a>Unlike NumPy arrays, PyTorch tensors provide:</span>
+<span id="cb35-26"><a href="#cb35-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-27"><a href="#cb35-27" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**GPU acceleration**: Seamlessly move computations to GPU for 10-100x speedup</span>
+<span id="cb35-28"><a href="#cb35-28" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Automatic differentiation**: Track operations to compute gradients (covered in Module 02)</span>
+<span id="cb35-29"><a href="#cb35-29" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Optimized kernels**: BLAS/cuBLAS backends for highly efficient linear algebra</span>
+<span id="cb35-30"><a href="#cb35-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-31"><a href="#cb35-31" aria-hidden="true" tabindex="-1"></a><span class="fu">## Tensor Dimensions</span></span>
+<span id="cb35-32"><a href="#cb35-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-33"><a href="#cb35-33" aria-hidden="true" tabindex="-1"></a>Think of tensors by their dimensions:</span>
+<span id="cb35-34"><a href="#cb35-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-37"><a href="#cb35-37" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
+<span id="cb35-38"><a href="#cb35-38" aria-hidden="true" tabindex="-1"></a>flowchart TB</span>
+<span id="cb35-39"><a href="#cb35-39" aria-hidden="true" tabindex="-1"></a>    subgraph <span class="fu">scalar</span>[<span class="ot">"</span><span class="st">0D: Scalar</span><span class="ot">"</span>]</span>
+<span id="cb35-40"><a href="#cb35-40" aria-hidden="true" tabindex="-1"></a>        <span class="ot">s["5"]</span></span>
+<span id="cb35-41"><a href="#cb35-41" aria-hidden="true" tabindex="-1"></a><span class="st">    end</span></span>
+<span id="cb35-42"><a href="#cb35-42" aria-hidden="true" tabindex="-1"></a><span class="st">    subgraph vector</span><span class="ot">[</span><span class="st">"1D: Vector"</span><span class="ot">]</span></span>
+<span id="cb35-43"><a href="#cb35-43" aria-hidden="true" tabindex="-1"></a>        v[<span class="ot">"</span><span class="st">[1, 2, 3, 4, 5]</span><span class="ot">"</span>]</span>
+<span id="cb35-44"><a href="#cb35-44" aria-hidden="true" tabindex="-1"></a>    end</span>
+<span id="cb35-45"><a href="#cb35-45" aria-hidden="true" tabindex="-1"></a>    subgraph matrix[<span class="ot">"</span><span class="st">2D: Matrix</span><span class="ot">"</span>]</span>
+<span id="cb35-46"><a href="#cb35-46" aria-hidden="true" tabindex="-1"></a>        <span class="ot">m["</span><span class="ch">[</span><span class="bn">[1, 2, 3</span><span class="ch">]</span><span class="ot">,&lt;br/&gt;</span><span class="ch">[</span><span class="bn">4, 5, 6</span><span class="ch">]</span><span class="ot">]"</span><span class="st">]</span></span>
+<span id="cb35-47"><a href="#cb35-47" aria-hidden="true" tabindex="-1"></a><span class="st">    end</span></span>
+<span id="cb35-48"><a href="#cb35-48" aria-hidden="true" tabindex="-1"></a><span class="st">    subgraph tensor3d[</span><span class="ot">"</span><span class="dv">3</span>D: Tensor<span class="ot">"</span><span class="st">]</span></span>
+<span id="cb35-49"><a href="#cb35-49" aria-hidden="true" tabindex="-1"></a><span class="st">        t[</span><span class="ot">"</span>Stack of matrices&lt;br/&gt;(batch, seq, embed)<span class="ot">"</span><span class="st">]</span></span>
+<span id="cb35-50"><a href="#cb35-50" aria-hidden="true" tabindex="-1"></a><span class="st">    end</span></span>
+<span id="cb35-51"><a href="#cb35-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-52"><a href="#cb35-52" aria-hidden="true" tabindex="-1"></a><span class="st">    scalar --&gt; vector --&gt; matrix --&gt; tensor3d</span></span>
+<span id="cb35-53"><a href="#cb35-53" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-54"><a href="#cb35-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-55"><a href="#cb35-55" aria-hidden="true" tabindex="-1"></a><span class="st">The shape of a tensor tells you what it represents. In an LLM:</span></span>
+<span id="cb35-56"><a href="#cb35-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-57"><a href="#cb35-57" aria-hidden="true" tabindex="-1"></a><span class="st">- `(vocab_size,)` - A 1D tensor: scores for each word in vocabulary</span></span>
+<span id="cb35-58"><a href="#cb35-58" aria-hidden="true" tabindex="-1"></a><span class="st">- `(seq_len, embed_dim)` - A 2D tensor: one embedding vector per token</span></span>
+<span id="cb35-59"><a href="#cb35-59" aria-hidden="true" tabindex="-1"></a><span class="st">- `(batch, seq_len, embed_dim)` - A 3D tensor: multiple sequences at once</span></span>
+<span id="cb35-60"><a href="#cb35-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-61"><a href="#cb35-61" aria-hidden="true" tabindex="-1"></a><span class="st">## LLM Tensor Shapes</span></span>
+<span id="cb35-62"><a href="#cb35-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-65"><a href="#cb35-65" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
+<span id="cb35-66"><a href="#cb35-66" aria-hidden="true" tabindex="-1"></a><span class="st">flowchart LR</span></span>
+<span id="cb35-67"><a href="#cb35-67" aria-hidden="true" tabindex="-1"></a><span class="st">    subgraph tokens[</span><span class="ot">"</span>Token IDs<span class="ot">"</span><span class="st">]</span></span>
+<span id="cb35-68"><a href="#cb35-68" aria-hidden="true" tabindex="-1"></a><span class="st">        tid[</span><span class="ot">"</span>(batch, seq_len)&lt;br/&gt;[[<span class="dv">101</span>, <span class="dv">2054</span>, <span class="dv">2003</span>],&lt;br/&gt;[<span class="dv">101</span>, <span class="dv">7592</span>, <span class="dv">102</span>]]<span class="ot">"</span><span class="st">]</span></span>
+<span id="cb35-69"><a href="#cb35-69" aria-hidden="true" tabindex="-1"></a><span class="st">    end</span></span>
+<span id="cb35-70"><a href="#cb35-70" aria-hidden="true" tabindex="-1"></a><span class="st">    subgraph embeds[</span><span class="ot">"</span>Embeddings<span class="ot">"</span><span class="st">]</span></span>
+<span id="cb35-71"><a href="#cb35-71" aria-hidden="true" tabindex="-1"></a><span class="st">        emb[</span><span class="ot">"</span>(batch, seq, embed_dim)&lt;br/&gt;Each token → <span class="dv">64</span>-dim vector<span class="ot">"</span><span class="st">]</span></span>
+<span id="cb35-72"><a href="#cb35-72" aria-hidden="true" tabindex="-1"></a><span class="st">    end</span></span>
+<span id="cb35-73"><a href="#cb35-73" aria-hidden="true" tabindex="-1"></a><span class="st">    subgraph attn[</span><span class="ot">"</span>Attention<span class="ot">"</span><span class="st">]</span></span>
+<span id="cb35-74"><a href="#cb35-74" aria-hidden="true" tabindex="-1"></a><span class="st">        att[</span><span class="ot">"</span>(batch, heads, seq, seq)&lt;br/&gt;Each head: seq×seq matrix<span class="ot">"</span><span class="st">]</span></span>
+<span id="cb35-75"><a href="#cb35-75" aria-hidden="true" tabindex="-1"></a><span class="st">    end</span></span>
+<span id="cb35-76"><a href="#cb35-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-77"><a href="#cb35-77" aria-hidden="true" tabindex="-1"></a><span class="st">    tokens --&gt; embeds --&gt; attn</span></span>
+<span id="cb35-78"><a href="#cb35-78" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-79"><a href="#cb35-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-80"><a href="#cb35-80" aria-hidden="true" tabindex="-1"></a><span class="st">## The Math</span></span>
+<span id="cb35-81"><a href="#cb35-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-82"><a href="#cb35-82" aria-hidden="true" tabindex="-1"></a><span class="st">### Element-wise Operations</span></span>
+<span id="cb35-83"><a href="#cb35-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-84"><a href="#cb35-84" aria-hidden="true" tabindex="-1"></a><span class="st">Apply the same operation to every element:</span></span>
+<span id="cb35-85"><a href="#cb35-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-86"><a href="#cb35-86" aria-hidden="true" tabindex="-1"></a><span class="st">```python</span></span>
+<span id="cb35-87"><a href="#cb35-87" aria-hidden="true" tabindex="-1"></a><span class="st">[1, 2, 3] + [4, 5, 6] = [5, 7, 9]</span></span>
+<span id="cb35-88"><a href="#cb35-88" aria-hidden="true" tabindex="-1"></a><span class="st">[1, 2, 3] * 2 = [2, 4, 6]</span></span>
+<span id="cb35-89"><a href="#cb35-89" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-90"><a href="#cb35-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-91"><a href="#cb35-91" aria-hidden="true" tabindex="-1"></a><span class="st">### Matrix Multiplication</span></span>
+<span id="cb35-92"><a href="#cb35-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-93"><a href="#cb35-93" aria-hidden="true" tabindex="-1"></a><span class="st">The core operation of neural networks. For matrices A (m×n) and B (n×p):</span></span>
+<span id="cb35-94"><a href="#cb35-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-95"><a href="#cb35-95" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-96"><a href="#cb35-96" aria-hidden="true" tabindex="-1"></a><span class="st">C = A @ B  →  C is (m×p)</span></span>
+<span id="cb35-97"><a href="#cb35-97" aria-hidden="true" tabindex="-1"></a><span class="st">C[i,j] = sum(A[i,k] * B[k,j] for k in range(n))</span></span>
+<span id="cb35-98"><a href="#cb35-98" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-99"><a href="#cb35-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-100"><a href="#cb35-100" aria-hidden="true" tabindex="-1"></a><span class="st">### Broadcasting</span></span>
+<span id="cb35-101"><a href="#cb35-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-102"><a href="#cb35-102" aria-hidden="true" tabindex="-1"></a><span class="st">When shapes don't match, PyTorch automatically expands smaller tensors:</span></span>
+<span id="cb35-103"><a href="#cb35-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-106"><a href="#cb35-106" aria-hidden="true" tabindex="-1"></a><span class="in">```{mermaid}</span></span>
+<span id="cb35-107"><a href="#cb35-107" aria-hidden="true" tabindex="-1"></a><span class="st">flowchart LR</span></span>
+<span id="cb35-108"><a href="#cb35-108" aria-hidden="true" tabindex="-1"></a><span class="st">    subgraph input[</span><span class="ot">"</span>Batch (<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">3</span>)<span class="ot">"</span><span class="st">]</span></span>
+<span id="cb35-109"><a href="#cb35-109" aria-hidden="true" tabindex="-1"></a><span class="st">        batch[</span><span class="ot">"</span>[[a,b,c], ...]<span class="ot">"</span><span class="st">]</span></span>
+<span id="cb35-110"><a href="#cb35-110" aria-hidden="true" tabindex="-1"></a><span class="st">    end</span></span>
+<span id="cb35-111"><a href="#cb35-111" aria-hidden="true" tabindex="-1"></a><span class="st">    subgraph bias[</span><span class="ot">"</span>Bias (<span class="dv">3</span>,)<span class="ot">"</span><span class="st">]</span></span>
+<span id="cb35-112"><a href="#cb35-112" aria-hidden="true" tabindex="-1"></a><span class="st">        b[</span><span class="ot">"</span>[x, <span class="ot">y</span>, z]<span class="ot">"</span><span class="st">]</span></span>
+<span id="cb35-113"><a href="#cb35-113" aria-hidden="true" tabindex="-1"></a><span class="st">    end</span></span>
+<span id="cb35-114"><a href="#cb35-114" aria-hidden="true" tabindex="-1"></a><span class="st">    subgraph result[</span><span class="ot">"</span>Result (<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">3</span>)<span class="ot">"</span><span class="st">]</span></span>
+<span id="cb35-115"><a href="#cb35-115" aria-hidden="true" tabindex="-1"></a><span class="st">        res[</span><span class="ot">"</span>[[a+x,b+<span class="ot">y</span>,c+z], ...]<span class="ot">"</span><span class="st">]</span></span>
+<span id="cb35-116"><a href="#cb35-116" aria-hidden="true" tabindex="-1"></a><span class="st">    end</span></span>
+<span id="cb35-117"><a href="#cb35-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-118"><a href="#cb35-118" aria-hidden="true" tabindex="-1"></a><span class="st">    input --&gt; |</span><span class="ot">"</span>+<span class="ot">"</span><span class="st">| result</span></span>
+<span id="cb35-119"><a href="#cb35-119" aria-hidden="true" tabindex="-1"></a><span class="st">    bias --&gt; |</span><span class="ot">"</span>broadcasts<span class="ot">"</span><span class="st">| result</span></span>
+<span id="cb35-120"><a href="#cb35-120" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-121"><a href="#cb35-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-122"><a href="#cb35-122" aria-hidden="true" tabindex="-1"></a><span class="st">Broadcasting rules:</span></span>
+<span id="cb35-123"><a href="#cb35-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-124"><a href="#cb35-124" aria-hidden="true" tabindex="-1"></a><span class="st">1. Align shapes from the right</span></span>
+<span id="cb35-125"><a href="#cb35-125" aria-hidden="true" tabindex="-1"></a><span class="st">2. Dimensions must match OR be 1 (or missing)</span></span>
+<span id="cb35-126"><a href="#cb35-126" aria-hidden="true" tabindex="-1"></a><span class="st">3. Size-1 dimensions get repeated to match</span></span>
+<span id="cb35-127"><a href="#cb35-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-128"><a href="#cb35-128" aria-hidden="true" tabindex="-1"></a><span class="st">## Code Walkthrough</span></span>
+<span id="cb35-129"><a href="#cb35-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-130"><a href="#cb35-130" aria-hidden="true" tabindex="-1"></a><span class="st">Let's explore tensors interactively:</span></span>
+<span id="cb35-131"><a href="#cb35-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-134"><a href="#cb35-134" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb35-135"><a href="#cb35-135" aria-hidden="true" tabindex="-1"></a><span class="st">import torch</span></span>
+<span id="cb35-136"><a href="#cb35-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-137"><a href="#cb35-137" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>PyTorch version: {torch.__version__}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-138"><a href="#cb35-138" aria-hidden="true" tabindex="-1"></a><span class="st">device = </span><span class="ot">"</span>mps<span class="ot">"</span><span class="st"> if torch.backends.mps.is_available() else </span><span class="ot">"</span>cpu<span class="ot">"</span></span>
+<span id="cb35-139"><a href="#cb35-139" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Device: {device}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-140"><a href="#cb35-140" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-141"><a href="#cb35-141" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-142"><a href="#cb35-142" aria-hidden="true" tabindex="-1"></a><span class="st">### Creating Tensors</span></span>
+<span id="cb35-143"><a href="#cb35-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-146"><a href="#cb35-146" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb35-147"><a href="#cb35-147" aria-hidden="true" tabindex="-1"></a><span class="st"># From a list</span></span>
+<span id="cb35-148"><a href="#cb35-148" aria-hidden="true" tabindex="-1"></a><span class="st">x = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])</span></span>
+<span id="cb35-149"><a href="#cb35-149" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Shape: {x.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-150"><a href="#cb35-150" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Dtype: {x.dtype}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-151"><a href="#cb35-151" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Device: {x.device}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-152"><a href="#cb35-152" aria-hidden="true" tabindex="-1"></a><span class="st">print(x)</span></span>
+<span id="cb35-153"><a href="#cb35-153" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-154"><a href="#cb35-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-157"><a href="#cb35-157" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb35-158"><a href="#cb35-158" aria-hidden="true" tabindex="-1"></a><span class="st"># Random tensors (common for initialization)</span></span>
+<span id="cb35-159"><a href="#cb35-159" aria-hidden="true" tabindex="-1"></a><span class="st">random_tensor = torch.randn(2, 3, 4)  # Normal distribution (mean=0, std=1)</span></span>
+<span id="cb35-160"><a href="#cb35-160" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Random tensor shape: {random_tensor.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-161"><a href="#cb35-161" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Mean: {random_tensor.mean():.<span class="dv">4</span>f}, Std: {random_tensor.std():.<span class="dv">4</span>f}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-162"><a href="#cb35-162" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-163"><a href="#cb35-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-164"><a href="#cb35-164" aria-hidden="true" tabindex="-1"></a><span class="st">### Data Types (dtypes)</span></span>
+<span id="cb35-165"><a href="#cb35-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-166"><a href="#cb35-166" aria-hidden="true" tabindex="-1"></a><span class="st">Choosing the right dtype affects memory usage and numerical precision:</span></span>
+<span id="cb35-167"><a href="#cb35-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-170"><a href="#cb35-170" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb35-171"><a href="#cb35-171" aria-hidden="true" tabindex="-1"></a><span class="st"># Default is float32 (32 bits = 4 bytes per number)</span></span>
+<span id="cb35-172"><a href="#cb35-172" aria-hidden="true" tabindex="-1"></a><span class="st">t32 = torch.randn(1000, 1000)</span></span>
+<span id="cb35-173"><a href="#cb35-173" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>float32: {t32.element_size()} <span class="kw">bytes</span> per element, total: {t32.numel() <span class="ot">*</span> t32.element_size() / <span class="dv">1</span>e6:.<span class="dv">1</span>f} MB<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-174"><a href="#cb35-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-175"><a href="#cb35-175" aria-hidden="true" tabindex="-1"></a><span class="st"># float16 uses half the memory but lower precision</span></span>
+<span id="cb35-176"><a href="#cb35-176" aria-hidden="true" tabindex="-1"></a><span class="st">t16 = torch.randn(1000, 1000, dtype=torch.float16)</span></span>
+<span id="cb35-177"><a href="#cb35-177" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>float16: {t16.element_size()} <span class="kw">bytes</span> per element, total: {t16.numel() <span class="ot">*</span> t16.element_size() / <span class="dv">1</span>e6:.<span class="dv">1</span>f} MB<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-178"><a href="#cb35-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-179"><a href="#cb35-179" aria-hidden="true" tabindex="-1"></a><span class="st"># bfloat16 is popular for training (better range than float16)</span></span>
+<span id="cb35-180"><a href="#cb35-180" aria-hidden="true" tabindex="-1"></a><span class="st">tbf16 = torch.randn(1000, 1000, dtype=torch.bfloat16)</span></span>
+<span id="cb35-181"><a href="#cb35-181" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>bfloat16: {tbf16.element_size()} <span class="kw">bytes</span> per element<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-182"><a href="#cb35-182" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-183"><a href="#cb35-183" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-184"><a href="#cb35-184" aria-hidden="true" tabindex="-1"></a><span class="st">**When to use each:**</span></span>
+<span id="cb35-185"><a href="#cb35-185" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-186"><a href="#cb35-186" aria-hidden="true" tabindex="-1"></a><span class="st">- **float32**: Default, good for learning and debugging</span></span>
+<span id="cb35-187"><a href="#cb35-187" aria-hidden="true" tabindex="-1"></a><span class="st">- **float16**: Inference on GPUs with Tensor Cores, half memory</span></span>
+<span id="cb35-188"><a href="#cb35-188" aria-hidden="true" tabindex="-1"></a><span class="st">- **bfloat16**: Training large models, better numerical stability than float16</span></span>
+<span id="cb35-189"><a href="#cb35-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-190"><a href="#cb35-190" aria-hidden="true" tabindex="-1"></a><span class="st">### Reshaping</span></span>
+<span id="cb35-191"><a href="#cb35-191" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-192"><a href="#cb35-192" aria-hidden="true" tabindex="-1"></a><span class="st">Reshaping is critical for multi-head attention, where we split the embedding dimension across multiple heads:</span></span>
+<span id="cb35-193"><a href="#cb35-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-196"><a href="#cb35-196" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb35-197"><a href="#cb35-197" aria-hidden="true" tabindex="-1"></a><span class="st"># Reshape for multi-head attention</span></span>
+<span id="cb35-198"><a href="#cb35-198" aria-hidden="true" tabindex="-1"></a><span class="st">batch, seq, embed = 4, 32, 64</span></span>
+<span id="cb35-199"><a href="#cb35-199" aria-hidden="true" tabindex="-1"></a><span class="st">num_heads = 8</span></span>
+<span id="cb35-200"><a href="#cb35-200" aria-hidden="true" tabindex="-1"></a><span class="st">head_dim = embed // num_heads</span></span>
+<span id="cb35-201"><a href="#cb35-201" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-202"><a href="#cb35-202" aria-hidden="true" tabindex="-1"></a><span class="st">x = torch.randn(batch, seq, embed)</span></span>
+<span id="cb35-203"><a href="#cb35-203" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Original: {x.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-204"><a href="#cb35-204" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-205"><a href="#cb35-205" aria-hidden="true" tabindex="-1"></a><span class="st"># Split into heads</span></span>
+<span id="cb35-206"><a href="#cb35-206" aria-hidden="true" tabindex="-1"></a><span class="st">x_heads = x.view(batch, seq, num_heads, head_dim)</span></span>
+<span id="cb35-207"><a href="#cb35-207" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>After view: {x_heads.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-208"><a href="#cb35-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-209"><a href="#cb35-209" aria-hidden="true" tabindex="-1"></a><span class="st"># Transpose for attention computation</span></span>
+<span id="cb35-210"><a href="#cb35-210" aria-hidden="true" tabindex="-1"></a><span class="st">x_heads = x_heads.transpose(1, 2)  # (batch, heads, seq, head_dim)</span></span>
+<span id="cb35-211"><a href="#cb35-211" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>After transpose: {x_heads.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-212"><a href="#cb35-212" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-213"><a href="#cb35-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-214"><a href="#cb35-214" aria-hidden="true" tabindex="-1"></a><span class="st">### Memory Layout: view vs reshape vs contiguous</span></span>
+<span id="cb35-215"><a href="#cb35-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-216"><a href="#cb35-216" aria-hidden="true" tabindex="-1"></a><span class="st">Understanding memory layout helps avoid subtle bugs:</span></span>
+<span id="cb35-217"><a href="#cb35-217" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-220"><a href="#cb35-220" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb35-221"><a href="#cb35-221" aria-hidden="true" tabindex="-1"></a><span class="st"># view() requires contiguous memory - it's a zero-copy operation</span></span>
+<span id="cb35-222"><a href="#cb35-222" aria-hidden="true" tabindex="-1"></a><span class="st">x = torch.randn(3, 4)</span></span>
+<span id="cb35-223"><a href="#cb35-223" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Original is contiguous: {x.is_contiguous()}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-224"><a href="#cb35-224" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-225"><a href="#cb35-225" aria-hidden="true" tabindex="-1"></a><span class="st"># Transpose creates a non-contiguous view (same memory, different strides)</span></span>
+<span id="cb35-226"><a href="#cb35-226" aria-hidden="true" tabindex="-1"></a><span class="st">x_t = x.transpose(0, 1)</span></span>
+<span id="cb35-227"><a href="#cb35-227" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Transposed is contiguous: {x_t.is_contiguous()}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-228"><a href="#cb35-228" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-229"><a href="#cb35-229" aria-hidden="true" tabindex="-1"></a><span class="st"># view() fails on non-contiguous tensors</span></span>
+<span id="cb35-230"><a href="#cb35-230" aria-hidden="true" tabindex="-1"></a><span class="st">try:</span></span>
+<span id="cb35-231"><a href="#cb35-231" aria-hidden="true" tabindex="-1"></a><span class="st">    x_t.view(12)  # This will fail</span></span>
+<span id="cb35-232"><a href="#cb35-232" aria-hidden="true" tabindex="-1"></a><span class="st">except RuntimeError as e:</span></span>
+<span id="cb35-233"><a href="#cb35-233" aria-hidden="true" tabindex="-1"></a><span class="st">    print(f</span><span class="ot">"</span>Error: {e}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-234"><a href="#cb35-234" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-235"><a href="#cb35-235" aria-hidden="true" tabindex="-1"></a><span class="st"># contiguous() makes a copy with proper memory layout</span></span>
+<span id="cb35-236"><a href="#cb35-236" aria-hidden="true" tabindex="-1"></a><span class="st">x_t_contig = x_t.contiguous()</span></span>
+<span id="cb35-237"><a href="#cb35-237" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>After contiguous(): {x_t_contig.is_contiguous()}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-238"><a href="#cb35-238" aria-hidden="true" tabindex="-1"></a><span class="st">x_t_contig.view(12)  # Now it works</span></span>
+<span id="cb35-239"><a href="#cb35-239" aria-hidden="true" tabindex="-1"></a><span class="st">print(</span><span class="ot">"</span>view() works after contiguous()<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-240"><a href="#cb35-240" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-241"><a href="#cb35-241" aria-hidden="true" tabindex="-1"></a><span class="st"># reshape() handles this automatically (but may copy)</span></span>
+<span id="cb35-242"><a href="#cb35-242" aria-hidden="true" tabindex="-1"></a><span class="st">reshaped = x_t.reshape(12)  # Always works</span></span>
+<span id="cb35-243"><a href="#cb35-243" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>reshape() auto-handles non-contiguous: {reshaped.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-244"><a href="#cb35-244" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-245"><a href="#cb35-245" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-246"><a href="#cb35-246" aria-hidden="true" tabindex="-1"></a><span class="st">**Rule of thumb**: Use `reshape()` unless you specifically need zero-copy behavior.</span></span>
+<span id="cb35-247"><a href="#cb35-247" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-248"><a href="#cb35-248" aria-hidden="true" tabindex="-1"></a><span class="st">### Matrix Multiplication</span></span>
+<span id="cb35-249"><a href="#cb35-249" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-250"><a href="#cb35-250" aria-hidden="true" tabindex="-1"></a><span class="st">Matrix multiplication is the workhorse of neural networks. The `</span><span class="dt">@</span><span class="st">` operator (or `torch.matmul`) handles batched operations automatically:</span></span>
+<span id="cb35-251"><a href="#cb35-251" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-254"><a href="#cb35-254" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb35-255"><a href="#cb35-255" aria-hidden="true" tabindex="-1"></a><span class="st"># Simulating Q @ K^T in attention</span></span>
+<span id="cb35-256"><a href="#cb35-256" aria-hidden="true" tabindex="-1"></a><span class="st">Q = torch.randn(2, 8, 32, 8)  # (batch, heads, seq, head_dim)</span></span>
+<span id="cb35-257"><a href="#cb35-257" aria-hidden="true" tabindex="-1"></a><span class="st">K = torch.randn(2, 8, 32, 8)</span></span>
+<span id="cb35-258"><a href="#cb35-258" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-259"><a href="#cb35-259" aria-hidden="true" tabindex="-1"></a><span class="st"># Attention scores</span></span>
+<span id="cb35-260"><a href="#cb35-260" aria-hidden="true" tabindex="-1"></a><span class="st">scores = Q @ K.transpose(-2, -1)  # (batch, heads, seq, seq)</span></span>
+<span id="cb35-261"><a href="#cb35-261" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Q shape: {Q.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-262"><a href="#cb35-262" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>K^T shape: {K.transpose(-<span class="dv">2</span>, -<span class="dv">1</span>).shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-263"><a href="#cb35-263" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Scores shape: {scores.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-264"><a href="#cb35-264" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-265"><a href="#cb35-265" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-266"><a href="#cb35-266" aria-hidden="true" tabindex="-1"></a><span class="st">**Key insight**: The last two dimensions follow standard matrix multiplication rules `(m, k) @ (k, n) -&gt; (m, n)`, while leading dimensions are broadcasted/batched.</span></span>
+<span id="cb35-267"><a href="#cb35-267" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-268"><a href="#cb35-268" aria-hidden="true" tabindex="-1"></a><span class="st">### Softmax: Converting Scores to Probabilities</span></span>
+<span id="cb35-269"><a href="#cb35-269" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-270"><a href="#cb35-270" aria-hidden="true" tabindex="-1"></a><span class="st">Softmax takes a vector of arbitrary real numbers (**logits**) and converts them into a **probability distribution** — values between 0 and 1 that sum to 1.</span></span>
+<span id="cb35-271"><a href="#cb35-271" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-272"><a href="#cb35-272" aria-hidden="true" tabindex="-1"></a><span class="wa">$$</span><span class="ch">\t</span><span class="st">ext{softmax}(z_i) = </span><span class="ch">\f</span><span class="st">rac{e^{z_i}}{</span><span class="ch">\s</span><span class="st">um_{j=1}^{n} e^{z_j}}</span><span class="wa">$$</span></span>
+<span id="cb35-273"><a href="#cb35-273" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-274"><a href="#cb35-274" aria-hidden="true" tabindex="-1"></a><span class="st">The exponential function amplifies differences — larger values get disproportionately larger weights:</span></span>
+<span id="cb35-275"><a href="#cb35-275" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-278"><a href="#cb35-278" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb35-279"><a href="#cb35-279" aria-hidden="true" tabindex="-1"></a><span class="st">import torch</span></span>
+<span id="cb35-280"><a href="#cb35-280" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-281"><a href="#cb35-281" aria-hidden="true" tabindex="-1"></a><span class="st">logits = torch.tensor([2.0, 1.0, 0.1])</span></span>
+<span id="cb35-282"><a href="#cb35-282" aria-hidden="true" tabindex="-1"></a><span class="st">probs = torch.softmax(logits, dim=-1)</span></span>
+<span id="cb35-283"><a href="#cb35-283" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-284"><a href="#cb35-284" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Logits: {logits.tolist()}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-285"><a href="#cb35-285" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Probs:  {[f<span class="ot">'</span><span class="ss">{p:.3f}</span><span class="ot">'</span> <span class="kw">for</span> p in probs.tolist()]}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-286"><a href="#cb35-286" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Sum:    {probs.sum():.<span class="dv">3</span>f}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-287"><a href="#cb35-287" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-288"><a href="#cb35-288" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-289"><a href="#cb35-289" aria-hidden="true" tabindex="-1"></a><span class="st">The highest logit (2.0) gets ~65% of the probability mass. This is how attention weights and next-token predictions work.</span></span>
+<span id="cb35-290"><a href="#cb35-290" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-291"><a href="#cb35-291" aria-hidden="true" tabindex="-1"></a><span class="st">**The `dim` parameter matters** — it specifies which dimension sums to 1:</span></span>
+<span id="cb35-292"><a href="#cb35-292" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-295"><a href="#cb35-295" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb35-296"><a href="#cb35-296" aria-hidden="true" tabindex="-1"></a><span class="st"># Batch of scores: (batch=2, seq=3)</span></span>
+<span id="cb35-297"><a href="#cb35-297" aria-hidden="true" tabindex="-1"></a><span class="st">scores = torch.randn(2, 3)</span></span>
+<span id="cb35-298"><a href="#cb35-298" aria-hidden="true" tabindex="-1"></a><span class="st">weights = torch.softmax(scores, dim=-1)  # Each row sums to 1</span></span>
+<span id="cb35-299"><a href="#cb35-299" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-300"><a href="#cb35-300" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Row sums: {weights.sum(dim=-<span class="dv">1</span>)}<span class="ot">"</span><span class="st">)  # [1.0, 1.0]</span></span>
+<span id="cb35-301"><a href="#cb35-301" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-302"><a href="#cb35-302" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-303"><a href="#cb35-303" aria-hidden="true" tabindex="-1"></a><span class="st">**Tip**: Always use `torch.softmax()` — it handles numerical stability automatically. For details on temperature scaling, see [Module 08: Generation](../m08_generation/lesson.qmd). For softmax in attention, see [Module 05: Attention](../m05_attention/lesson.qmd).</span></span>
+<span id="cb35-304"><a href="#cb35-304" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-305"><a href="#cb35-305" aria-hidden="true" tabindex="-1"></a><span class="st">### Common Operations in LLMs</span></span>
+<span id="cb35-306"><a href="#cb35-306" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-307"><a href="#cb35-307" aria-hidden="true" tabindex="-1"></a><span class="st">These operations appear everywhere in transformer models:</span></span>
+<span id="cb35-308"><a href="#cb35-308" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-311"><a href="#cb35-311" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb35-312"><a href="#cb35-312" aria-hidden="true" tabindex="-1"></a><span class="st"># Layer Normalization (normalizes features, not batch)</span></span>
+<span id="cb35-313"><a href="#cb35-313" aria-hidden="true" tabindex="-1"></a><span class="st">x = torch.randn(4, 32, 64)  # (batch, seq, embed)</span></span>
+<span id="cb35-314"><a href="#cb35-314" aria-hidden="true" tabindex="-1"></a><span class="st">mean = x.mean(dim=-1, keepdim=True)</span></span>
+<span id="cb35-315"><a href="#cb35-315" aria-hidden="true" tabindex="-1"></a><span class="st">std = x.std(dim=-1, keepdim=True)</span></span>
+<span id="cb35-316"><a href="#cb35-316" aria-hidden="true" tabindex="-1"></a><span class="st">x_norm = (x - mean) / (std + 1e-5)</span></span>
+<span id="cb35-317"><a href="#cb35-317" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>LayerNorm output shape: {x_norm.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-318"><a href="#cb35-318" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Mean per token: {x_norm.mean(dim=-<span class="dv">1</span>)[<span class="dv">0</span>, :<span class="dv">3</span>]}<span class="ot">"</span><span class="st">)  # Should be ~0</span></span>
+<span id="cb35-319"><a href="#cb35-319" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-320"><a href="#cb35-320" aria-hidden="true" tabindex="-1"></a><span class="st"># Linear projection (the most common operation)</span></span>
+<span id="cb35-321"><a href="#cb35-321" aria-hidden="true" tabindex="-1"></a><span class="st">W = torch.randn(64, 256)  # (in_features, out_features)</span></span>
+<span id="cb35-322"><a href="#cb35-322" aria-hidden="true" tabindex="-1"></a><span class="st">b = torch.randn(256)       # (out_features,)</span></span>
+<span id="cb35-323"><a href="#cb35-323" aria-hidden="true" tabindex="-1"></a><span class="st">x = torch.randn(4, 32, 64) # (batch, seq, in_features)</span></span>
+<span id="cb35-324"><a href="#cb35-324" aria-hidden="true" tabindex="-1"></a><span class="st">out = x @ W + b            # Broadcasting adds bias</span></span>
+<span id="cb35-325"><a href="#cb35-325" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Linear output shape: {out.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-326"><a href="#cb35-326" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-327"><a href="#cb35-327" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-328"><a href="#cb35-328" aria-hidden="true" tabindex="-1"></a><span class="st">### Broadcasting in Action</span></span>
+<span id="cb35-329"><a href="#cb35-329" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-332"><a href="#cb35-332" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb35-333"><a href="#cb35-333" aria-hidden="true" tabindex="-1"></a><span class="st"># Adding bias to all tokens in a batch</span></span>
+<span id="cb35-334"><a href="#cb35-334" aria-hidden="true" tabindex="-1"></a><span class="st">embeddings = torch.randn(4, 32, 64)  # (batch, seq, embed)</span></span>
+<span id="cb35-335"><a href="#cb35-335" aria-hidden="true" tabindex="-1"></a><span class="st">bias = torch.randn(64)               # (embed,)</span></span>
+<span id="cb35-336"><a href="#cb35-336" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-337"><a href="#cb35-337" aria-hidden="true" tabindex="-1"></a><span class="st">result = embeddings + bias  # Broadcasts!</span></span>
+<span id="cb35-338"><a href="#cb35-338" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Embeddings: {embeddings.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-339"><a href="#cb35-339" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Bias: {bias.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-340"><a href="#cb35-340" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Result: {result.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-341"><a href="#cb35-341" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-342"><a href="#cb35-342" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-343"><a href="#cb35-343" aria-hidden="true" tabindex="-1"></a><span class="st">### Device Management (CPU vs GPU)</span></span>
+<span id="cb35-344"><a href="#cb35-344" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-345"><a href="#cb35-345" aria-hidden="true" tabindex="-1"></a><span class="st">Moving tensors between devices is essential for GPU acceleration:</span></span>
+<span id="cb35-346"><a href="#cb35-346" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-349"><a href="#cb35-349" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb35-350"><a href="#cb35-350" aria-hidden="true" tabindex="-1"></a><span class="st"># Check available devices</span></span>
+<span id="cb35-351"><a href="#cb35-351" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>MPS available: {torch.backends.mps.is_available()}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-352"><a href="#cb35-352" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>CUDA available: {torch.cuda.is_available()}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-353"><a href="#cb35-353" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-354"><a href="#cb35-354" aria-hidden="true" tabindex="-1"></a><span class="st"># Create tensor on specific device</span></span>
+<span id="cb35-355"><a href="#cb35-355" aria-hidden="true" tabindex="-1"></a><span class="st">device = </span><span class="ot">"</span>mps<span class="ot">"</span><span class="st"> if torch.backends.mps.is_available() else </span><span class="ot">"</span>cpu<span class="ot">"</span></span>
+<span id="cb35-356"><a href="#cb35-356" aria-hidden="true" tabindex="-1"></a><span class="st">x = torch.randn(1000, 1000, device=device)</span></span>
+<span id="cb35-357"><a href="#cb35-357" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Tensor device: {x.device}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-358"><a href="#cb35-358" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-359"><a href="#cb35-359" aria-hidden="true" tabindex="-1"></a><span class="st"># Move existing tensor to device</span></span>
+<span id="cb35-360"><a href="#cb35-360" aria-hidden="true" tabindex="-1"></a><span class="st">y = torch.randn(1000, 1000)  # Created on CPU by default</span></span>
+<span id="cb35-361"><a href="#cb35-361" aria-hidden="true" tabindex="-1"></a><span class="st">y = y.to(device)             # Move to GPU</span></span>
+<span id="cb35-362"><a href="#cb35-362" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>After .to(): {<span class="ot">y</span>.device}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-363"><a href="#cb35-363" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-364"><a href="#cb35-364" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-365"><a href="#cb35-365" aria-hidden="true" tabindex="-1"></a><span class="st">**Common pitfall**: Operations require tensors on the same device:</span></span>
+<span id="cb35-366"><a href="#cb35-366" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-369"><a href="#cb35-369" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb35-370"><a href="#cb35-370" aria-hidden="true" tabindex="-1"></a><span class="st"># This would fail if devices differ:</span></span>
+<span id="cb35-371"><a href="#cb35-371" aria-hidden="true" tabindex="-1"></a><span class="st"># z = x_cpu + x_gpu  # RuntimeError!</span></span>
+<span id="cb35-372"><a href="#cb35-372" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-373"><a href="#cb35-373" aria-hidden="true" tabindex="-1"></a><span class="st"># Always ensure tensors are on the same device</span></span>
+<span id="cb35-374"><a href="#cb35-374" aria-hidden="true" tabindex="-1"></a><span class="st">a = torch.randn(100, device=device)</span></span>
+<span id="cb35-375"><a href="#cb35-375" aria-hidden="true" tabindex="-1"></a><span class="st">b = torch.randn(100, device=device)</span></span>
+<span id="cb35-376"><a href="#cb35-376" aria-hidden="true" tabindex="-1"></a><span class="st">c = a + b  # Works!</span></span>
+<span id="cb35-377"><a href="#cb35-377" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Both on {device}: operation succeeded<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-378"><a href="#cb35-378" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-379"><a href="#cb35-379" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-380"><a href="#cb35-380" aria-hidden="true" tabindex="-1"></a><span class="st">## Exercises</span></span>
+<span id="cb35-381"><a href="#cb35-381" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-382"><a href="#cb35-382" aria-hidden="true" tabindex="-1"></a><span class="st">### Exercise 1: Create an Embedding Lookup</span></span>
+<span id="cb35-383"><a href="#cb35-383" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-386"><a href="#cb35-386" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb35-387"><a href="#cb35-387" aria-hidden="true" tabindex="-1"></a><span class="st"># Create a vocabulary embedding table</span></span>
+<span id="cb35-388"><a href="#cb35-388" aria-hidden="true" tabindex="-1"></a><span class="st">vocab_size = 100</span></span>
+<span id="cb35-389"><a href="#cb35-389" aria-hidden="true" tabindex="-1"></a><span class="st">embed_dim = 32</span></span>
+<span id="cb35-390"><a href="#cb35-390" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-391"><a href="#cb35-391" aria-hidden="true" tabindex="-1"></a><span class="st">embedding_table = torch.randn(vocab_size, embed_dim)</span></span>
+<span id="cb35-392"><a href="#cb35-392" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Embedding table: {embedding_table.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-393"><a href="#cb35-393" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-394"><a href="#cb35-394" aria-hidden="true" tabindex="-1"></a><span class="st"># Look up embeddings for token IDs</span></span>
+<span id="cb35-395"><a href="#cb35-395" aria-hidden="true" tabindex="-1"></a><span class="st">token_ids = torch.tensor([5, 23, 7, 42])</span></span>
+<span id="cb35-396"><a href="#cb35-396" aria-hidden="true" tabindex="-1"></a><span class="st">embeddings = embedding_table[token_ids]</span></span>
+<span id="cb35-397"><a href="#cb35-397" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Token IDs: {token_ids}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-398"><a href="#cb35-398" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Embeddings shape: {embeddings.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-399"><a href="#cb35-399" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-400"><a href="#cb35-400" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-401"><a href="#cb35-401" aria-hidden="true" tabindex="-1"></a><span class="st">### Exercise 2: Simulate Simple Attention</span></span>
+<span id="cb35-402"><a href="#cb35-402" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-405"><a href="#cb35-405" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb35-406"><a href="#cb35-406" aria-hidden="true" tabindex="-1"></a><span class="st">import matplotlib.pyplot as plt</span></span>
+<span id="cb35-407"><a href="#cb35-407" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-408"><a href="#cb35-408" aria-hidden="true" tabindex="-1"></a><span class="st">seq_len = 6</span></span>
+<span id="cb35-409"><a href="#cb35-409" aria-hidden="true" tabindex="-1"></a><span class="st">embed_dim = 8</span></span>
+<span id="cb35-410"><a href="#cb35-410" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-411"><a href="#cb35-411" aria-hidden="true" tabindex="-1"></a><span class="st"># Token embeddings</span></span>
+<span id="cb35-412"><a href="#cb35-412" aria-hidden="true" tabindex="-1"></a><span class="st">tokens = torch.randn(seq_len, embed_dim)</span></span>
+<span id="cb35-413"><a href="#cb35-413" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-414"><a href="#cb35-414" aria-hidden="true" tabindex="-1"></a><span class="st"># Compute attention scores (dot product similarity)</span></span>
+<span id="cb35-415"><a href="#cb35-415" aria-hidden="true" tabindex="-1"></a><span class="st">scores = tokens @ tokens.T</span></span>
+<span id="cb35-416"><a href="#cb35-416" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Attention scores shape: {scores.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-417"><a href="#cb35-417" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-418"><a href="#cb35-418" aria-hidden="true" tabindex="-1"></a><span class="st"># Apply softmax to get weights</span></span>
+<span id="cb35-419"><a href="#cb35-419" aria-hidden="true" tabindex="-1"></a><span class="st">attention_weights = torch.softmax(scores, dim=-1)</span></span>
+<span id="cb35-420"><a href="#cb35-420" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-421"><a href="#cb35-421" aria-hidden="true" tabindex="-1"></a><span class="st"># Visualize</span></span>
+<span id="cb35-422"><a href="#cb35-422" aria-hidden="true" tabindex="-1"></a><span class="st">plt.figure(figsize=(6, 5))</span></span>
+<span id="cb35-423"><a href="#cb35-423" aria-hidden="true" tabindex="-1"></a><span class="st">plt.imshow(attention_weights.detach().numpy(), cmap='Blues')</span></span>
+<span id="cb35-424"><a href="#cb35-424" aria-hidden="true" tabindex="-1"></a><span class="st">plt.colorbar(label='Attention Weight')</span></span>
+<span id="cb35-425"><a href="#cb35-425" aria-hidden="true" tabindex="-1"></a><span class="st">plt.title('Simple Attention Pattern')</span></span>
+<span id="cb35-426"><a href="#cb35-426" aria-hidden="true" tabindex="-1"></a><span class="st">plt.xlabel('Key Token')</span></span>
+<span id="cb35-427"><a href="#cb35-427" aria-hidden="true" tabindex="-1"></a><span class="st">plt.ylabel('Query Token')</span></span>
+<span id="cb35-428"><a href="#cb35-428" aria-hidden="true" tabindex="-1"></a><span class="st">plt.show()</span></span>
+<span id="cb35-429"><a href="#cb35-429" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-430"><a href="#cb35-430" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-431"><a href="#cb35-431" aria-hidden="true" tabindex="-1"></a><span class="st">### Exercise 3: Apply Attention</span></span>
+<span id="cb35-432"><a href="#cb35-432" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-435"><a href="#cb35-435" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb35-436"><a href="#cb35-436" aria-hidden="true" tabindex="-1"></a><span class="st"># Weighted combination of values</span></span>
+<span id="cb35-437"><a href="#cb35-437" aria-hidden="true" tabindex="-1"></a><span class="st">output = attention_weights @ tokens</span></span>
+<span id="cb35-438"><a href="#cb35-438" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Input: {tokens.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-439"><a href="#cb35-439" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Weights: {attention_weights.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-440"><a href="#cb35-440" aria-hidden="true" tabindex="-1"></a><span class="st">print(f</span><span class="ot">"</span>Output: {output.shape}<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-441"><a href="#cb35-441" aria-hidden="true" tabindex="-1"></a><span class="st">print(</span><span class="ot">"</span>\nEach output token is a weighted average of ALL input tokens!<span class="ot">"</span><span class="st">)</span></span>
+<span id="cb35-442"><a href="#cb35-442" aria-hidden="true" tabindex="-1"></a><span class="st">```</span></span>
+<span id="cb35-443"><a href="#cb35-443" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-444"><a href="#cb35-444" aria-hidden="true" tabindex="-1"></a><span class="st">## Common Pitfalls</span></span>
+<span id="cb35-445"><a href="#cb35-445" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-446"><a href="#cb35-446" aria-hidden="true" tabindex="-1"></a><span class="st">Before moving on, be aware of these common mistakes:</span></span>
+<span id="cb35-447"><a href="#cb35-447" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-448"><a href="#cb35-448" aria-hidden="true" tabindex="-1"></a><span class="st">1. **Shape mismatches**: Always print shapes when debugging. Most errors come from unexpected dimensions.</span></span>
+<span id="cb35-449"><a href="#cb35-449" aria-hidden="true" tabindex="-1"></a><span class="st">2. **Device mismatches**: Tensors must be on the same device for operations. Use `.to(device)` consistently.</span></span>
+<span id="cb35-450"><a href="#cb35-450" aria-hidden="true" tabindex="-1"></a><span class="st">3. **In-place operations**: Methods ending in `_` (like `add_()`) modify tensors in-place, which can break gradient computation.</span></span>
+<span id="cb35-451"><a href="#cb35-451" aria-hidden="true" tabindex="-1"></a><span class="st">4. **Forgetting contiguous()**: After transpose/permute, call `.contiguous()` before `.view()`.</span></span>
+<span id="cb35-452"><a href="#cb35-452" aria-hidden="true" tabindex="-1"></a><span class="st">5. **dtype mismatches**: Operations between float32 and float16 may silently upcast or fail.</span></span>
+<span id="cb35-453"><a href="#cb35-453" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-454"><a href="#cb35-454" aria-hidden="true" tabindex="-1"></a><span class="st">## Summary</span></span>
+<span id="cb35-455"><a href="#cb35-455" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-456"><a href="#cb35-456" aria-hidden="true" tabindex="-1"></a><span class="st">Key takeaways:</span></span>
+<span id="cb35-457"><a href="#cb35-457" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-458"><a href="#cb35-458" aria-hidden="true" tabindex="-1"></a><span class="st">1. **Tensors are multi-dimensional arrays** - their shape tells you what they represent</span></span>
+<span id="cb35-459"><a href="#cb35-459" aria-hidden="true" tabindex="-1"></a><span class="st">2. **Broadcasting** automatically expands smaller tensors to match larger ones</span></span>
+<span id="cb35-460"><a href="#cb35-460" aria-hidden="true" tabindex="-1"></a><span class="st">3. **Matrix multiplication** is the core operation - inner dimensions must match</span></span>
+<span id="cb35-461"><a href="#cb35-461" aria-hidden="true" tabindex="-1"></a><span class="st">4. **Reshaping** reorganizes dimensions without changing total elements</span></span>
+<span id="cb35-462"><a href="#cb35-462" aria-hidden="true" tabindex="-1"></a><span class="st">5. **Memory layout matters** - understand contiguous vs strided for efficient operations</span></span>
+<span id="cb35-463"><a href="#cb35-463" aria-hidden="true" tabindex="-1"></a><span class="st">6. **Device placement** - use GPU (MPS/CUDA) for 10-100x speedup on large tensors</span></span>
+<span id="cb35-464"><a href="#cb35-464" aria-hidden="true" tabindex="-1"></a><span class="st">7. **Data types** - float32 for learning, float16/bfloat16 for production</span></span>
+<span id="cb35-465"><a href="#cb35-465" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-466"><a href="#cb35-466" aria-hidden="true" tabindex="-1"></a><span class="st">## What's Next</span></span>
+<span id="cb35-467"><a href="#cb35-467" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-468"><a href="#cb35-468" aria-hidden="true" tabindex="-1"></a><span class="st">In [Module 02: Autograd](../m02_autograd/lesson.qmd), we'll see how PyTorch automatically computes gradients through all these operations - the magic that makes neural networks trainable.</span></span>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
