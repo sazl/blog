@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leader Succession Graph - Wikidata Explorer</title>
+  <script type="module" crossorigin src="/wikigraph/assets/index-CTE56eCa.js"></script>
+  <link rel="stylesheet" crossorigin href="/wikigraph/assets/index-5OS4ml02.css">
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <div class="header-content">
+                <div class="header-text">
+                    <h1>Leader Succession Graph</h1>
+                    <p>Search for a political leader and explore their predecessors through history</p>
+                </div>
+                <button id="settings-btn" class="settings-btn" title="Settings">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                            d="M17.43 10.98c.04-.32.07-.64.07-.98 0-.34-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C12.46 0.17 12.25 0 12 0h-4c-.25 0-.46.17-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98 0 .33.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.25.24.42.49.42h4c.25 0 .46-.17.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM10 13c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3z" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <div id="controls">
+            <div class="controls-left">
+                <div id="search-container" role="combobox" aria-expanded="false" aria-haspopup="listbox">
+                    <div class="search-input-wrapper">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input type="text" id="search-input"
+                            placeholder="Search for a leader..."
+                            autocomplete="off"
+                            aria-autocomplete="list"
+                            aria-controls="autocomplete-results">
+                        <div class="search-loading-spinner" style="display: none;">
+                            <svg class="spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+                        </div>
+                        <button id="search-clear-btn" class="search-clear-btn" style="display: none;"
+                            title="Clear search" aria-label="Clear search">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="autocomplete-results" role="listbox" aria-label="Search suggestions"></div>
+                </div>
+
+                <!-- View switcher -->
+                <div class="view-switcher" role="tablist" aria-label="View selection" data-active="graph">
+                    <button id="graph-view-btn" class="btn-view active" role="tab" aria-selected="true" aria-controls="graph-container">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/>
+                            <circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/>
+                            <line x1="7" y1="6" x2="9" y2="10"/><line x1="17" y1="6" x2="15" y2="10"/>
+                            <line x1="7" y1="18" x2="9" y2="14"/><line x1="17" y1="18" x2="15" y2="14"/>
+                        </svg>
+                        <span>Graph</span>
+                    </button>
+                    <button id="tree-view-btn" class="btn-view" role="tab" aria-selected="false" aria-controls="tree-container">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="2" width="6" height="4" rx="1"/>
+                            <rect x="3" y="10" width="6" height="4" rx="1"/>
+                            <rect x="15" y="10" width="6" height="4" rx="1"/>
+                            <rect x="3" y="18" width="6" height="4" rx="1"/>
+                            <rect x="15" y="18" width="6" height="4" rx="1"/>
+                            <line x1="12" y1="6" x2="12" y2="10"/>
+                            <line x1="6" y1="10" x2="6" y2="10"/><line x1="18" y1="10" x2="18" y2="10"/>
+                            <line x1="6" y1="14" x2="6" y2="18"/><line x1="18" y1="14" x2="18" y2="18"/>
+                            <line x1="6" y1="10" x2="18" y2="10"/>
+                        </svg>
+                        <span>Tree</span>
+                    </button>
+                    <button id="gantt-view-btn" class="btn-view" role="tab" aria-selected="false" aria-controls="gantt-container">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="4" y1="6" x2="20" y2="6"/>
+                            <line x1="4" y1="12" x2="20" y2="12"/>
+                            <line x1="4" y1="18" x2="20" y2="18"/>
+                            <rect x="6" y="4" width="8" height="4" rx="1" fill="currentColor"/>
+                            <rect x="10" y="10" width="6" height="4" rx="1" fill="currentColor"/>
+                            <rect x="8" y="16" width="10" height="4" rx="1" fill="currentColor"/>
+                        </svg>
+                        <span>Timeline</span>
+                    </button>
+                </div>
+
+                <div id="position-filter" role="group" aria-label="Position filter">
+                    <span class="position-filter-label">Filter:</span>
+                    <div class="position-filter-controls">
+                        <button id="select-all-positions" class="filter-action-btn" title="Select all positions">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 6L9 17l-5-5"/>
+                            </svg>
+                            All
+                        </button>
+                        <button id="clear-all-positions" class="filter-action-btn" title="Clear all positions">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                            None
+                        </button>
+                    </div>
+                    <div class="position-selector-container">
+                        <button id="position-selector-summary"
+                                class="position-selector-summary"
+                                aria-haspopup="listbox"
+                                aria-expanded="false">
+                            <span id="position-count-text">All</span>
+                            <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </button>
+                        <div id="position-dropdown"
+                             class="position-dropdown"
+                             role="listbox"
+                             aria-label="Position selection"
+                             style="display: none;">
+                            <div class="position-search-wrapper">
+                                <svg class="position-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                </svg>
+                                <input type="text" id="position-search" placeholder="Filter positions..." autocomplete="off">
+                            </div>
+                            <div id="position-list" class="position-list"></div>
+                            <div class="position-dropdown-footer">
+                                <span class="selection-count"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="loading" style="display:none;">Loading...</div>
+                <div id="error" style="display:none;"></div>
+            </div>
+
+            <div class="controls-right">
+                <button id="reset-layout-btn" class="btn btn-outline" disabled>Reset</button>
+                <button id="copy-url-btn" class="btn btn-outline">Copy URL</button>
+            </div>
+        </div>
+
+        <!-- Main layout: graph area + right panel -->
+        <div class="main-layout">
+            <div class="content-area">
+                <div id="graph-info" class="progress-divider">
+                    <div id="progress-fill" class="progress-fill"></div>
+                    <p id="graph-info-text">Search for a leader to explore their succession graph</p>
+                </div>
+
+                <!-- Breadcrumb Trail -->
+                <div id="breadcrumb-trail" class="breadcrumb-trail"></div>
+
+                <div id="graph-container">
+                    <svg id="graph">
+                        <defs>
+                            <!-- Modern soft shadow for stacked cards -->
+                            <filter id="soft-shadow" x="-30%" y="-30%" width="180%" height="180%">
+                                <feGaussianBlur in="SourceAlpha" stdDeviation="8" result="blur" />
+                                <feOffset in="blur" dx="0" dy="6" result="offsetBlur" />
+                                <feFlood flood-color="rgba(0,0,0,0.08)" result="color" />
+                                <feComposite in="color" in2="offsetBlur" operator="in" result="shadow" />
+                                <feMerge>
+                                    <feMergeNode in="shadow" />
+                                    <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                            </filter>
+                            <!-- Dark mode shadow -->
+                            <filter id="soft-shadow-dark" x="-30%" y="-30%" width="180%" height="180%">
+                                <feGaussianBlur in="SourceAlpha" stdDeviation="10" result="blur" />
+                                <feOffset in="blur" dx="0" dy="8" result="offsetBlur" />
+                                <feFlood flood-color="rgba(0,0,0,0.25)" result="color" />
+                                <feComposite in="color" in2="offsetBlur" operator="in" result="shadow" />
+                                <feMerge>
+                                    <feMergeNode in="shadow" />
+                                    <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                            </filter>
+                        </defs>
+                    </svg>
+
+                    <!-- Navigation Controls Toolbar -->
+                    <div class="graph-controls" id="graph-controls">
+                        <button id="zoom-in-btn" class="graph-control-btn" title="Zoom In (+)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+                            </svg>
+                        </button>
+                        <button id="zoom-out-btn" class="graph-control-btn" title="Zoom Out (-)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                <line x1="8" y1="11" x2="14" y2="11"/>
+                            </svg>
+                        </button>
+                        <button id="fit-view-btn" class="graph-control-btn" title="Fit to View (F)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                            </svg>
+                        </button>
+                        <button id="center-root-btn" class="graph-control-btn" title="Center on Root (R)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Minimap -->
+                    <div class="minimap-container" id="minimap-container"></div>
+                </div>
+
+                <div id="gantt-container" style="display: none;">
+                    <div class="timeline-controls">
+                        <label class="timeline-sort-label">Sort:</label>
+                        <select id="timeline-sort" class="timeline-sort-select">
+                            <option value="startDate">Start Date</option>
+                            <option value="name">Position Name</option>
+                            <option value="duration">Duration (Longest)</option>
+                        </select>
+                    </div>
+                    <svg id="gantt"></svg>
+                </div>
+
+                <div id="tree-container" style="display: none;">
+                    <svg id="tree"></svg>
+                </div>
+            </div>
+
+            <!-- Permanent right panel -->
+            <div class="right-panel" id="right-panel">
+                <div class="resize-handle" id="resize-handle"></div>
+                <div class="right-panel-header">
+                    <button id="panel-collapse-btn" class="panel-collapse-btn" title="Collapse sidebar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                    <h3 id="panel-title">Person Info</h3>
+                    <button id="panel-target-btn" class="panel-target-btn" title="Set as search target">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <circle cx="12" cy="12" r="6"></circle>
+                            <circle cx="12" cy="12" r="2"></circle>
+                        </svg>
+                    </button>
+                </div>
+                <div class="right-panel-tabs">
+                    <button class="wiki-tab active" data-tab="info">Info</button>
+                    <button class="wiki-tab" data-tab="wikipedia">Wikipedia</button>
+                </div>
+                <div class="right-panel-content">
+                    <div id="info-content" class="tab-content active">
+                        <div class="panel-placeholder" id="panel-placeholder">
+                            <div class="panel-placeholder-icon">👤</div>
+                            <div class="panel-placeholder-text">
+                                Search for a leader to see their information here
+                            </div>
+                        </div>
+                    </div>
+                    <div id="wikipedia-content" class="tab-content">
+                        <iframe id="wiki-iframe" frameborder="0"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tooltip" id="tooltip"></div>
+
+        <!-- Settings Sidebar (keep as overlay) -->
+        <div id="settings-sidebar" class="settings-sidebar">
+            <div class="settings-sidebar-header">
+                <h3>Settings</h3>
+                <button id="settings-sidebar-close" class="settings-sidebar-close">&times;</button>
+            </div>
+            <div class="settings-sidebar-content">
+                <div class="settings-section">
+                    <h4>Theme</h4>
+                    <div class="theme-options">
+                        <label class="theme-option">
+                            <input type="radio" name="theme" value="light" checked>
+                            <span class="theme-label">☀️ Light</span>
+                        </label>
+                        <label class="theme-option">
+                            <input type="radio" name="theme" value="dark">
+                            <span class="theme-label">🌙 Dark</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast notifications container -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+
+</body>
+
+</html>
