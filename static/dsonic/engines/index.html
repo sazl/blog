@@ -4,343 +4,202 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Engine Guide - DSonic</title>
-  <link rel="icon" type="image/svg+xml" href="/dsonic/assets/favicon-CDNk96qj.svg">
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-      background: #0a0a0a;
-      color: #e0e0e0;
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      line-height: 1.6;
-    }
-    .site-nav {
-      background: #151515;
-      border-bottom: 1px solid #333;
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .logo {
-      color: #00ff88;
-      font-size: 1.5rem;
-      font-weight: bold;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .logo-icon {
-      width: 32px;
-      height: 32px;
-      flex-shrink: 0;
-    }
-    .nav-links { display: flex; gap: 25px; }
-    .nav-links a {
-      color: #888;
-      text-decoration: none;
-      font-size: 0.9rem;
-      transition: color 0.2s;
-    }
-    .nav-links a:hover, .nav-links a.active { color: #00ff88; }
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon-CDNk96qj.svg">
 
-    /* Page layout with sidebar */
-    .page-layout {
-      display: flex;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
+  
 
-    /* Sidebar TOC */
-    .sidebar {
-      width: 240px;
-      flex-shrink: 0;
-      padding: 30px 20px;
-      border-right: 1px solid #222;
-      height: calc(100vh - 60px);
-      position: sticky;
-      top: 60px;
-      overflow-y: auto;
-    }
-    .sidebar h2 {
-      color: #00ff88;
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin: 0 0 15px 0;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #333;
-    }
-    .sidebar-nav {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .sidebar-nav a {
-      display: block;
-      padding: 8px 12px;
-      color: #888;
-      text-decoration: none;
-      font-size: 0.85rem;
-      border-radius: 6px;
-      transition: all 0.2s;
-    }
-    .sidebar-nav a:hover {
-      background: #1a1a1a;
-      color: #00ff88;
-    }
-    .sidebar-nav a.active {
-      background: rgba(0, 255, 136, 0.1);
-      color: #00ff88;
-    }
-    .sidebar-nav a span {
-      display: block;
-      color: #555;
-      font-size: 0.75rem;
-      margin-top: 2px;
-    }
+  
+  
 
-    /* Main content */
-    .main-content {
-      flex: 1;
-      min-width: 0;
-      padding: 40px;
-    }
-    h1 { color: #00ff88; margin-bottom: 10px; font-size: 2.5rem; }
-    .subtitle { color: #666; margin-bottom: 40px; font-size: 1rem; }
-
-    /* Responsive: hide sidebar on mobile */
-    @media (max-width: 900px) {
-      .page-layout { flex-direction: column; }
-      .sidebar {
-        width: 100%;
-        height: auto;
-        position: static;
-        border-right: none;
-        border-bottom: 1px solid #222;
-        padding: 20px;
-      }
-      .sidebar-nav {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-      .sidebar-nav a {
-        padding: 6px 12px;
-        background: #1a1a1a;
-        border: 1px solid #333;
-        border-radius: 20px;
-      }
-      .sidebar-nav a span { display: none; }
-      .main-content { padding: 20px; }
-    }
-    .engine-section {
-      background: #151515;
-      border: 1px solid #333;
-      border-radius: 8px;
-      margin-bottom: 30px;
-      overflow: hidden;
-      scroll-margin-top: 80px;
-    }
-    .engine-header {
-      background: #1a1a1a;
-      padding: 20px;
-      border-bottom: 1px solid #333;
-    }
-    .engine-header h2 {
-      color: #00ff88;
-      margin: 0 0 5px 0;
-      font-size: 1.4rem;
-    }
-    .engine-header .sound-name {
-      color: #888;
-      font-size: 0.85rem;
-    }
-    .engine-content { padding: 20px; }
-    .engine-description { color: #aaa; margin-bottom: 20px; }
-    .templates {
-      background: #1a1a1a;
-      border-radius: 6px;
-      padding: 15px;
-      margin-bottom: 20px;
-    }
-    .templates h3 { color: #00ff88; margin: 0 0 10px 0; font-size: 0.9rem; }
-    .template-list { display: flex; flex-wrap: wrap; gap: 8px; }
-    .template-tag {
-      background: #252525;
-      color: #aaa;
-      padding: 4px 10px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-    }
-    .key-params {
-      margin-bottom: 20px;
-    }
-    .key-params h3 { color: #888; margin: 0 0 10px 0; font-size: 0.9rem; }
-    .param-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 10px;
-    }
-    .param-item {
-      background: #1a1a1a;
-      border-radius: 4px;
-      padding: 10px;
-    }
-    .param-name { color: #00ff88; font-size: 0.85rem; }
-    .param-range { color: #666; font-size: 0.75rem; margin-top: 2px; }
-    .param-desc { color: #888; font-size: 0.8rem; margin-top: 4px; }
-    /* Strudel editor code block styles */
-    .code-block {
-      background: #0a0a0a;
-      border: 1px solid #333;
-      border-radius: 6px;
-      overflow: hidden;
-    }
-    .code-block strudel-editor {
-      display: block;
-      --background: #0a0a0a;
-      --foreground: #e0e0e0;
-      --accent: #00ff88;
-    }
-    /* Override strudel-editor internal styles */
-    .code-block strudel-editor::part(editor) {
-      background: #0a0a0a;
-    }
-    /* Editor controls bar */
-    .code-controls {
-      display: flex;
-      gap: 8px;
-      padding: 8px 10px;
-      background: #151515;
-      border-bottom: 1px solid #333;
-    }
-    .code-control-btn {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      background: #252525;
-      color: #aaa;
-      border: 1px solid #333;
-      padding: 4px 10px;
-      font-size: 0.75rem;
-      font-family: inherit;
-      cursor: pointer;
-      transition: all 0.2s;
-      border-radius: 3px;
-    }
-    .code-control-btn:hover { background: #333; color: #fff; }
-    .code-control-btn.play-btn:hover { background: #00884433; border-color: #00ff88; color: #00ff88; }
-    .code-control-btn.stop-btn:hover { background: #ff444433; border-color: #ff4444; color: #ff4444; }
-    .code-control-btn.update-btn:hover { background: #4488ff33; border-color: #4488ff; color: #4488ff; }
-    .code-control-btn.playing { background: #00884433; border-color: #00ff88; color: #00ff88; }
-    .code-hint {
-      margin-left: auto;
-      color: #555;
-      font-size: 0.65rem;
-      align-self: center;
-    }
-  </style>
-  <script type="module" crossorigin src="/dsonic/assets/engines-Bbm9hj9O.js"></script>
-  <link rel="modulepreload" crossorigin href="/dsonic/assets/dsonic-BoM1o26J.js">
-  <link rel="modulepreload" crossorigin href="/dsonic/assets/index-DXN4EnIs-c_NZj4Hy.js">
+  
+  
+  <script type="module" crossorigin src="/assets/engines-CwGIxYMH.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
+  <link rel="modulepreload" crossorigin href="/assets/sidebar-observer-0kL-4i8s.js">
+  <link rel="modulepreload" crossorigin href="/assets/dsonic-CTOXsBwE.js">
+  <link rel="modulepreload" crossorigin href="/assets/dsonic-strudel-CdNK4VA6.js">
+  <link rel="stylesheet" crossorigin href="/assets/sidebar-observer-CpiEM8IM.css">
+  <link rel="stylesheet" crossorigin href="/assets/engines-DSaObW1C.css">
+  <link rel="stylesheet" crossorigin href="/assets/components-D3j992yv.css">
+  <link rel="stylesheet" crossorigin href="/assets/code-BOheUMc3.css">
 </head>
 <body>
   <nav class="site-nav">
-    <a href="../" class="logo">
-      <svg class="logo-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#00ffaa"/>
-            <stop offset="50%" style="stop-color:#00ff88"/>
-            <stop offset="100%" style="stop-color:#00cc66"/>
-          </linearGradient>
-          <linearGradient id="drumBody" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#1a1a2e"/>
-            <stop offset="100%" style="stop-color:#0a0a14"/>
-          </linearGradient>
-          <filter id="glow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-          <filter id="waveGlow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        </defs>
-        <circle cx="24" cy="24" r="22" fill="#0a0a0a"/>
-        <circle cx="24" cy="24" r="22" fill="none" stroke="url(#logoGrad)" stroke-width="1.5" opacity="0.8"/>
-        <circle cx="24" cy="24" r="20" fill="none" stroke="#00ff88" stroke-width="0.5" opacity="0.3"/>
-        <path d="M10 16 L10 32 Q24 38, 38 32 L38 16 Q24 22, 10 16" fill="url(#drumBody)" opacity="0.6"/>
-        <g filter="url(#glow)">
-          <line x1="10" y1="16" x2="10" y2="32" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round"/>
-          <line x1="38" y1="16" x2="38" y2="32" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round"/>
-          <line x1="14" y1="17" x2="14" y2="31" stroke="#00ff88" stroke-width="0.8" opacity="0.5"/>
-          <line x1="19" y1="18" x2="19" y2="30" stroke="#00ff88" stroke-width="0.8" opacity="0.4"/>
-          <line x1="29" y1="18" x2="29" y2="30" stroke="#00ff88" stroke-width="0.8" opacity="0.4"/>
-          <line x1="34" y1="17" x2="34" y2="31" stroke="#00ff88" stroke-width="0.8" opacity="0.5"/>
-        </g>
-        <g filter="url(#glow)">
-          <ellipse cx="24" cy="16" rx="14" ry="5" fill="none" stroke="url(#logoGrad)" stroke-width="2"/>
-          <ellipse cx="24" cy="16" rx="10" ry="3.5" fill="none" stroke="#00ff88" stroke-width="0.6" opacity="0.4"/>
-          <ellipse cx="24" cy="16" rx="6" ry="2" fill="none" stroke="#00ff88" stroke-width="0.4" opacity="0.3"/>
-        </g>
-        <g filter="url(#glow)"><ellipse cx="24" cy="32" rx="14" ry="5" fill="none" stroke="url(#logoGrad)" stroke-width="2"/></g>
-        <g filter="url(#waveGlow)">
-          <path d="M24 10 Q26 7, 24 4" fill="none" stroke="#00ffaa" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M24 10 Q22 7, 24 4" fill="none" stroke="#00ffaa" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M18 11 Q15 7, 17 3" fill="none" stroke="#00ff88" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
-          <path d="M13 13 Q9 9, 12 5" fill="none" stroke="#00ff88" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
-          <path d="M30 11 Q33 7, 31 3" fill="none" stroke="#00ff88" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
-          <path d="M35 13 Q39 9, 36 5" fill="none" stroke="#00ff88" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
-        </g>
-        <g filter="url(#glow)" opacity="0.7">
-          <rect x="15" y="38" width="2" height="4" rx="1" fill="#00ff88"/>
-          <rect x="19" y="36" width="2" height="6" rx="1" fill="#00ff88"/>
-          <rect x="23" y="37" width="2" height="5" rx="1" fill="#00ffaa"/>
-          <rect x="27" y="35" width="2" height="7" rx="1" fill="#00ff88"/>
-          <rect x="31" y="38" width="2" height="4" rx="1" fill="#00ff88"/>
-        </g>
-        <g stroke="#00ff88" stroke-width="0.5" opacity="0.3">
-          <path d="M6 24 L3 24" stroke-linecap="round"/><circle cx="3" cy="24" r="1" fill="#00ff88"/>
-          <path d="M42 24 L45 24" stroke-linecap="round"/><circle cx="45" cy="24" r="1" fill="#00ff88"/>
-        </g>
-      </svg>
-      DSonic
-    </a>
-    <div class="nav-links">
-      <a href="../">Overview</a>
-      <a href="./" class="active">Engines</a>
-      <a href="../reference/">Reference</a>
-      <a href="../integration/">Integration</a>
-      <a href="../studio/">Studio</a>
-    </div>
-  </nav>
+  <a href="/" class="logo">
+    <svg class="logo-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00ffaa"/>
+      <stop offset="50%" style="stop-color:#00ff88"/>
+      <stop offset="100%" style="stop-color:#00cc66"/>
+    </linearGradient>
+    <linearGradient id="drumBody" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#0a0a14"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="waveGlow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <circle cx="24" cy="24" r="22" fill="#0a0a0a"/>
+  <circle cx="24" cy="24" r="22" fill="none" stroke="url(#logoGrad)" stroke-width="1.5" opacity="0.8"/>
+  <circle cx="24" cy="24" r="20" fill="none" stroke="#00ff88" stroke-width="0.5" opacity="0.3"/>
+  <path d="M10 16 L10 32 Q24 38, 38 32 L38 16 Q24 22, 10 16" fill="url(#drumBody)" opacity="0.6"/>
+  <g filter="url(#glow)">
+    <line x1="10" y1="16" x2="10" y2="32" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round"/>
+    <line x1="38" y1="16" x2="38" y2="32" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round"/>
+    <line x1="14" y1="17" x2="14" y2="31" stroke="#00ff88" stroke-width="0.8" opacity="0.5"/>
+    <line x1="19" y1="18" x2="19" y2="30" stroke="#00ff88" stroke-width="0.8" opacity="0.4"/>
+    <line x1="29" y1="18" x2="29" y2="30" stroke="#00ff88" stroke-width="0.8" opacity="0.4"/>
+    <line x1="34" y1="17" x2="34" y2="31" stroke="#00ff88" stroke-width="0.8" opacity="0.5"/>
+  </g>
+  <g filter="url(#glow)">
+    <ellipse cx="24" cy="16" rx="14" ry="5" fill="none" stroke="url(#logoGrad)" stroke-width="2"/>
+    <ellipse cx="24" cy="16" rx="10" ry="3.5" fill="none" stroke="#00ff88" stroke-width="0.6" opacity="0.4"/>
+    <ellipse cx="24" cy="16" rx="6" ry="2" fill="none" stroke="#00ff88" stroke-width="0.4" opacity="0.3"/>
+  </g>
+  <g filter="url(#glow)"><ellipse cx="24" cy="32" rx="14" ry="5" fill="none" stroke="url(#logoGrad)" stroke-width="2"/></g>
+  <g filter="url(#waveGlow)">
+    <path d="M24 10 Q26 7, 24 4" fill="none" stroke="#00ffaa" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M24 10 Q22 7, 24 4" fill="none" stroke="#00ffaa" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M18 11 Q15 7, 17 3" fill="none" stroke="#00ff88" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+    <path d="M13 13 Q9 9, 12 5" fill="none" stroke="#00ff88" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+    <path d="M30 11 Q33 7, 31 3" fill="none" stroke="#00ff88" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+    <path d="M35 13 Q39 9, 36 5" fill="none" stroke="#00ff88" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+  </g>
+  <g filter="url(#glow)" opacity="0.7">
+    <rect x="15" y="38" width="2" height="4" rx="1" fill="#00ff88"/>
+    <rect x="19" y="36" width="2" height="6" rx="1" fill="#00ff88"/>
+    <rect x="23" y="37" width="2" height="5" rx="1" fill="#00ffaa"/>
+    <rect x="27" y="35" width="2" height="7" rx="1" fill="#00ff88"/>
+    <rect x="31" y="38" width="2" height="4" rx="1" fill="#00ff88"/>
+  </g>
+  <g stroke="#00ff88" stroke-width="0.5" opacity="0.3">
+    <path d="M6 24 L3 24" stroke-linecap="round"/><circle cx="3" cy="24" r="1" fill="#00ff88"/>
+    <path d="M42 24 L45 24" stroke-linecap="round"/><circle cx="45" cy="24" r="1" fill="#00ff88"/>
+  </g>
+</svg>
 
-  <div class="page-layout">
-    <!-- Sidebar TOC -->
-    <aside class="sidebar">
-      <h2>Engines</h2>
-      <nav class="sidebar-nav">
+    DSonic
+  </a>
+  <div class="nav-links">
+    
+      <a href="/">Overview</a>
+    
+      <a href="/engines/" class="active">Engines</a>
+    
+      <a href="/reference/">Reference</a>
+    
+      <a href="/integration/">Integration</a>
+    
+      <a href="/studio/">Studio</a>
+    
+  </div>
+</nav>
+
+
+  
+    
+
+<style>
+  /* Code controls styles for engine page */
+  .code-controls {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    background: var(--color-bg-tertiary);
+    border-bottom: 1px solid var(--color-border);
+    align-items: center;
+  }
+  .code-control-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--color-border-light);
+    color: #aaa;
+    padding: 8px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .code-control-btn:hover { background: var(--color-border); color: #fff; }
+  .code-control-btn.play-btn:hover, .code-control-btn.playing {
+    background: rgba(0, 136, 68, 0.2);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+  .code-control-btn.stop-btn:hover {
+    background: rgba(255, 68, 68, 0.2);
+    border-color: var(--color-error);
+    color: var(--color-error);
+  }
+  .code-control-btn.update-btn:hover {
+    background: rgba(68, 136, 255, 0.2);
+    border-color: var(--color-info);
+    color: var(--color-info);
+  }
+  .code-hint {
+    margin-left: auto;
+    color: var(--color-text-dimmest);
+    font-size: 0.75rem;
+  }
+  .code-block {
+    background: var(--color-bg-elevated);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+  }
+  strudel-editor {
+    display: block;
+    --background: #1a1a1a;
+    --foreground: #e0e0e0;
+    --caret: #00ff88;
+    --selection: rgba(0, 255, 136, 0.2);
+    --gutterBackground: #151515;
+    --gutterForeground: #555;
+    --lineHighlight: rgba(255, 255, 255, 0.03);
+  }
+</style>
+
+
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <h2>Engines</h2>
+    <nav class="sidebar-nav">
+      
         <a href="#analog-kick">Analog Kick <span>808/909 style</span></a>
+      
         <a href="#membrane">Dual Membrane <span>Physical modeling</span></a>
+      
         <a href="#hybrid-snare">Hybrid Snare <span>Layered synthesis</span></a>
+      
         <a href="#clap">Clap <span>Multi-hit claps</span></a>
+      
         <a href="#hat">Hat <span>Metallic hi-hats</span></a>
+      
         <a href="#cymbal">Cymbal <span>Complex cymbals</span></a>
+      
         <a href="#tom">Tom/Conga <span>Pitched drums</span></a>
+      
         <a href="#rim">Rim/Clave <span>Percussive hits</span></a>
+      
         <a href="#shaker">Shaker <span>Granular textures</span></a>
+      
         <a href="#fold">Fold/WT <span>Waveshaping</span></a>
-        <a href="#karplus">Karplus <span>String/tube</span></a>
+      
+        <a href="#impact">Impact <span>Organic textures</span></a>
+      
         <a href="#fm">FM Perc <span>4-operator FM</span></a>
-      </nav>
-    </aside>
+      
+    </nav>
+  </aside>
 
-    <!-- Main Content -->
-    <main class="main-content">
-      <h1>Engine Guide</h1>
-      <p class="subtitle">12 specialized drum synthesis engines for every sound you need</p>
+  <main class="main-content">
+    <h1>Engine Guide</h1>
+    <p class="subtitle">12 specialized drum synthesis engines for every sound you need</p>
 
     <!-- Engine 1: Analog Kick -->
     <section id="analog-kick" class="engine-section">
@@ -378,7 +237,7 @@
               <div class="param-desc">Body decay time</div>
             </div>
             <div class="param-item">
-              <div class="param-name">.pitchEnvAmount()</div>
+              <div class="param-name">.pitchEnvAmt()</div>
               <div class="param-range">-48 to 48 semi</div>
               <div class="param-desc">Pitch sweep amount</div>
             </div>
@@ -405,18 +264,17 @@
           </div>
         </div>
         <div class="code-block" data-example="akick">
-          <strudel-editor>
-<!--
+          <strudel-editor><!--
 // Deep 808 with heavy pitch sweep
 s("dsonic_akick_deep808")
   .bodyPitch(45)
-  .pitchEnvAmount(48)
+  .pitchEnvAmt(48)
   .pitchEnvDecay(0.12)
   .driveAmt(0.3)
   .driveType("tape")
   ._punchcard()
--->
-          </strudel-editor>
+
+--></strudel-editor>
         </div>
       </div>
     </section>
@@ -456,12 +314,12 @@ s("dsonic_akick_deep808")
               <div class="param-desc">Membrane coupling strength</div>
             </div>
             <div class="param-item">
-              <div class="param-name">.snareWireAmt()</div>
+              <div class="param-name">.wireLevel()</div>
               <div class="param-range">0-1</div>
               <div class="param-desc">Snare wire buzz amount</div>
             </div>
             <div class="param-item">
-              <div class="param-name">.snareWireTension()</div>
+              <div class="param-name">.wireTension()</div>
               <div class="param-range">0-1</div>
               <div class="param-desc">Snare wire tightness</div>
             </div>
@@ -478,18 +336,17 @@ s("dsonic_akick_deep808")
           </div>
         </div>
         <div class="code-block" data-example="membrane">
-          <strudel-editor>
-<!--
+          <strudel-editor><!--
 // Physical snare with wire buzz
 s("dsonic_membrane")
   .pitch1(180).pitch2(220)
-  .snareWireAmt(0.6)
-  .snareWireTension(0.7)
+  .wireLevel(0.6)
+  .wireTension(0.7)
   .strikeType("stick")
   .strikeHardness(0.8)
   ._punchcard()
--->
-          </strudel-editor>
+
+--></strudel-editor>
         </div>
       </div>
     </section>
@@ -528,7 +385,7 @@ s("dsonic_membrane")
               <div class="param-desc">Sub bump level</div>
             </div>
             <div class="param-item">
-              <div class="param-name">.noiseAmt()</div>
+              <div class="param-name">.noiseLevel()</div>
               <div class="param-range">0-1</div>
               <div class="param-desc">Noise layer level</div>
             </div>
@@ -543,25 +400,24 @@ s("dsonic_membrane")
               <div class="param-desc">Ring modulation</div>
             </div>
             <div class="param-item">
-              <div class="param-name">.clipAmt()</div>
+              <div class="param-name">.driveAmt()</div>
               <div class="param-range">0-1</div>
               <div class="param-desc">Distortion amount</div>
             </div>
           </div>
         </div>
         <div class="code-block" data-example="hsnare">
-          <strudel-editor>
-<!--
+          <strudel-editor><!--
 // 80s gated snare
 s("dsonic_hsnare_gated")
   .bodyPitch(200)
   .bodyDecay(0.08)
-  .noiseAmt(0.7)
+  .noiseLevel(0.7)
   .noiseSnap(0.8)
-  .clipAmt(0.4)
+  .driveAmt(0.4)
   ._punchcard()
--->
-          </strudel-editor>
+
+--></strudel-editor>
         </div>
       </div>
     </section>
@@ -591,44 +447,42 @@ s("dsonic_hsnare_gated")
           <h3>Key Parameters</h3>
           <div class="param-grid">
             <div class="param-item">
-              <div class="param-name">.clapCount()</div>
-              <div class="param-range">1-8</div>
-              <div class="param-desc">Number of clap hits</div>
-            </div>
-            <div class="param-item">
-              <div class="param-name">.clapSpread()</div>
-              <div class="param-range">0.005-0.05 sec</div>
-              <div class="param-desc">Time between hits</div>
-            </div>
-            <div class="param-item">
-              <div class="param-name">.clapRandom()</div>
+              <div class="param-name">.bodyResAmt()</div>
               <div class="param-range">0-1</div>
-              <div class="param-desc">Timing randomization</div>
+              <div class="param-desc">Body resonance level</div>
             </div>
             <div class="param-item">
-              <div class="param-name">.snapAmt()</div>
+              <div class="param-name">.transientLevel()</div>
               <div class="param-range">0-1</div>
-              <div class="param-desc">Transient snap</div>
+              <div class="param-desc">Transient attack level</div>
             </div>
             <div class="param-item">
-              <div class="param-name">.noiseColor()</div>
+              <div class="param-name">.filterEnvAmt()</div>
               <div class="param-range">0-1</div>
-              <div class="param-desc">Noise brightness</div>
+              <div class="param-desc">Filter sweep depth</div>
+            </div>
+            <div class="param-item">
+              <div class="param-name">.strikeType()</div>
+              <div class="param-range">palm/fingers/cupped</div>
+              <div class="param-desc">Clap character</div>
+            </div>
+            <div class="param-item">
+              <div class="param-name">.earlyReflections()</div>
+              <div class="param-range">0-1</div>
+              <div class="param-desc">Room reflections</div>
             </div>
           </div>
         </div>
         <div class="code-block" data-example="clap">
-          <strudel-editor>
-<!--
+          <strudel-editor><!--
 // Classic 808/909 clap
 s("dsonic_hclap_classic")
-  .clapCount(4)
-  .clapSpread(0.012)
-  .clapRandom(0.3)
-  .snapAmt(0.6)
+  .bodyResAmt(0.3)
+  .transientLevel(0.7)
+  .strikeType('palm')
   ._punchcard()
--->
-          </strudel-editor>
+
+--></strudel-editor>
         </div>
       </div>
     </section>
@@ -641,8 +495,9 @@ s("dsonic_hclap_classic")
       </div>
       <div class="engine-content">
         <p class="engine-description">
-          Metallic hi-hats with closed/open/ride modes. Features inharmonic metal
-          partials, digital grit via sample rate reduction, and choke behavior.
+          TR-808 inspired hi-hat synthesizer. Features 6 square wave oscillators at
+          inharmonic frequencies, dual bandpass filter paths, and optional FM/ring
+          modulation for extended sound design. From tight closed hats to shimmering rides.
         </p>
         <div class="templates">
           <h3>Templates</h3>
@@ -659,48 +514,47 @@ s("dsonic_hclap_classic")
           <div class="param-grid">
             <div class="param-item">
               <div class="param-name">.mode()</div>
-              <div class="param-range">closed|open|ride</div>
-              <div class="param-desc">Hat mode</div>
+              <div class="param-range">closed|open|pedal|ride|splash</div>
+              <div class="param-desc">Hat mode (affects decay)</div>
             </div>
             <div class="param-item">
-              <div class="param-name">.metalAmt()</div>
-              <div class="param-range">0-1</div>
-              <div class="param-desc">Metallic character</div>
+              <div class="param-name">.oscTune()</div>
+              <div class="param-range">0.5-2</div>
+              <div class="param-desc">Master pitch multiplier</div>
             </div>
             <div class="param-item">
-              <div class="param-name">.metalRichness()</div>
-              <div class="param-range">0-1</div>
-              <div class="param-desc">Partial complexity</div>
+              <div class="param-name">.hiFilterFreq()</div>
+              <div class="param-range">4000-12000 Hz</div>
+              <div class="param-desc">High band center freq (808: 7100Hz)</div>
             </div>
             <div class="param-item">
-              <div class="param-name">.inharmonicity()</div>
-              <div class="param-range">0-1</div>
-              <div class="param-desc">Pitch randomness</div>
+              <div class="param-name">.loFilterFreq()</div>
+              <div class="param-range">1500-6000 Hz</div>
+              <div class="param-desc">Low band center freq (808: 3440Hz)</div>
             </div>
             <div class="param-item">
-              <div class="param-name">.srrAmt()</div>
-              <div class="param-range">0-1</div>
-              <div class="param-desc">Sample rate reduction</div>
+              <div class="param-name">.bandBalance()</div>
+              <div class="param-range">-1 to 1</div>
+              <div class="param-desc">Low vs high band mix</div>
             </div>
             <div class="param-item">
-              <div class="param-name">.sizzleAmt()</div>
-              <div class="param-range">0-1</div>
-              <div class="param-desc">Sizzle/shimmer</div>
+              <div class="param-name">.decay()</div>
+              <div class="param-range">0.01-3 sec</div>
+              <div class="param-desc">Overall decay time</div>
             </div>
           </div>
         </div>
         <div class="code-block" data-example="hat">
-          <strudel-editor>
-<!--
-// Metallic closed hat with grit
+          <strudel-editor><!--
+// TR-808 style closed hat
 s("dsonic_hhat_closed")
-  .metalAmt(0.8)
-  .metalRichness(0.7)
-  .inharmonicity(0.5)
-  .srrAmt(0.2)
+  .oscTune(1.0)
+  .hiFilterFreq(7100)
+  .loFilterFreq(3440)
+  .bandBalance(0.3)
   ._punchcard()
--->
-          </strudel-editor>
+
+--></strudel-editor>
         </div>
       </div>
     </section>
@@ -756,8 +610,7 @@ s("dsonic_hhat_closed")
           </div>
         </div>
         <div class="code-block" data-example="cymbal">
-          <strudel-editor>
-<!--
+          <strudel-editor><!--
 // Bright crash cymbal
 s("dsonic_hcymbal_crash")
   .size(0.6)
@@ -765,8 +618,8 @@ s("dsonic_hcymbal_crash")
   .richness(0.8)
   .clusterDensity(0.7)
   ._punchcard()
--->
-          </strudel-editor>
+
+--></strudel-editor>
         </div>
       </div>
     </section>
@@ -801,7 +654,7 @@ s("dsonic_hcymbal_crash")
               <div class="param-desc">Fundamental pitch</div>
             </div>
             <div class="param-item">
-              <div class="param-name">.pitchRampAmt()</div>
+              <div class="param-name">.pitchEnvAmt()</div>
               <div class="param-range">-24 to 24 semi</div>
               <div class="param-desc">Pitch bend amount</div>
             </div>
@@ -816,24 +669,23 @@ s("dsonic_hcymbal_crash")
               <div class="param-desc">Overtone level</div>
             </div>
             <div class="param-item">
-              <div class="param-name">.clickAmt()</div>
+              <div class="param-name">.clickLevel()</div>
               <div class="param-range">0-1</div>
               <div class="param-desc">Attack click</div>
             </div>
           </div>
         </div>
         <div class="code-block" data-example="tom">
-          <strudel-editor>
-<!--
+          <strudel-editor><!--
 // Floor tom with pitch bend
 s("dsonic_htom_floorTom")
   .pitch(80)
-  .pitchRampAmt(12)
+  .pitchEnvAmt(12)
   .decay(0.4)
   .tension(0.6)
   ._punchcard()
--->
-          </strudel-editor>
+
+--></strudel-editor>
         </div>
       </div>
     </section>
@@ -885,16 +737,15 @@ s("dsonic_htom_floorTom")
           </div>
         </div>
         <div class="code-block" data-example="rim">
-          <strudel-editor>
-<!--
+          <strudel-editor><!--
 // Classic cowbell
 s("dsonic_hrim_cowbell")
   .pitch(600)
   .decay(0.15)
   .dualStrike(0.3)
   ._punchcard()
--->
-          </strudel-editor>
+
+--></strudel-editor>
         </div>
       </div>
     </section>
@@ -946,8 +797,7 @@ s("dsonic_hrim_cowbell")
           </div>
         </div>
         <div class="code-block" data-example="shaker">
-          <strudel-editor>
-<!--
+          <strudel-editor><!--
 // Metallic cabasa
 s("dsonic_shaker_cabasa")
   .rattleType("metallic")
@@ -955,8 +805,8 @@ s("dsonic_shaker_cabasa")
   .grainDensity(0.8)
   .hardness(0.7)
   ._punchcard()
--->
-          </strudel-editor>
+
+--></strudel-editor>
         </div>
       </div>
     </section>
@@ -1013,8 +863,7 @@ s("dsonic_shaker_cabasa")
           </div>
         </div>
         <div class="code-block" data-example="fold">
-          <strudel-editor>
-<!--
+          <strudel-editor><!--
 // Aggressive fold kick
 s("dsonic_fold_foldKick")
   .algorithm("fold")
@@ -1022,75 +871,83 @@ s("dsonic_fold_foldKick")
   .foldSymmetry(0.3)
   .pitchEnvAmt(36)
   ._punchcard()
--->
-          </strudel-editor>
+
+--></strudel-editor>
         </div>
       </div>
     </section>
 
-    <!-- Engine 11: Karplus -->
-    <section id="karplus" class="engine-section">
+    <!-- Engine 11: Impact -->
+    <section id="impact" class="engine-section">
       <div class="engine-header">
-        <h2>11. Karplus/Resonator Engine</h2>
-        <div class="sound-name">dsonic_karplus</div>
+        <h2>11. Impact Engine</h2>
+        <div class="sound-name">dsonic_impact</div>
       </div>
       <div class="engine-content">
         <p class="engine-description">
-          Physical string/tube model using Karplus-Strong synthesis. Creates plucked,
-          struck, and resonant sounds. Great for pitched percussion, bells, and
-          metallic textures.
+          Multi-layer percussion synthesizer for textural, organic sounds. Features 3 layers:
+          Transient (attack), Body (tone), and Tail (ambience). Perfect for brushes, mallets,
+          rain sticks, wind chimes, singing bowls, and wood textures.
         </p>
         <div class="templates">
           <h3>Templates</h3>
           <div class="template-list">
-            <span class="template-tag">dsonic_karplus_pluck</span>
-            <span class="template-tag">dsonic_karplus_metal</span>
-            <span class="template-tag">dsonic_karplus_tube</span>
-            <span class="template-tag">dsonic_karplus_bell</span>
+            <span class="template-tag">dsonic_impact_brush</span>
+            <span class="template-tag">dsonic_impact_mallet</span>
+            <span class="template-tag">dsonic_impact_rainstick</span>
+            <span class="template-tag">dsonic_impact_windchime</span>
+            <span class="template-tag">dsonic_impact_softbell</span>
+            <span class="template-tag">dsonic_impact_woodtexture</span>
+            <span class="template-tag">dsonic_impact_bowlstrike</span>
           </div>
         </div>
         <div class="key-params">
           <h3>Key Parameters</h3>
           <div class="param-grid">
             <div class="param-item">
-              <div class="param-name">.exciterType()</div>
-              <div class="param-range">noise|pulse|impulse</div>
-              <div class="param-desc">Excitation source</div>
+              <div class="param-name">.transType()</div>
+              <div class="param-range">impulse|click|brush|mallet|noise-burst</div>
+              <div class="param-desc">Transient layer type</div>
             </div>
             <div class="param-item">
-              <div class="param-name">.pitch()</div>
+              <div class="param-name">.bodyType()</div>
+              <div class="param-range">sine|triangle|noise|filtered-noise|resonant</div>
+              <div class="param-desc">Body layer type</div>
+            </div>
+            <div class="param-item">
+              <div class="param-name">.tailType()</div>
+              <div class="param-range">noise-tail|reverb-like|shimmer|damped</div>
+              <div class="param-desc">Tail layer type</div>
+            </div>
+            <div class="param-item">
+              <div class="param-name">.bodyPitch()</div>
               <div class="param-range">20-2000 Hz</div>
-              <div class="param-desc">Resonator pitch</div>
+              <div class="param-desc">Body fundamental pitch</div>
             </div>
             <div class="param-item">
-              <div class="param-name">.damping()</div>
+              <div class="param-name">.layerMix()</div>
               <div class="param-range">0-1</div>
-              <div class="param-desc">High frequency damping</div>
+              <div class="param-desc">Body vs tail balance</div>
             </div>
             <div class="param-item">
-              <div class="param-name">.dispersion()</div>
+              <div class="param-name">.tailColor()</div>
               <div class="param-range">0-1</div>
-              <div class="param-desc">Pitch smearing</div>
-            </div>
-            <div class="param-item">
-              <div class="param-name">.twang()</div>
-              <div class="param-range">0-1</div>
-              <div class="param-desc">Twangy character</div>
+              <div class="param-desc">Tail brightness (dark to bright)</div>
             </div>
           </div>
         </div>
-        <div class="code-block" data-example="karplus">
-          <strudel-editor>
-<!--
-// Metallic bell tone
-s("dsonic_karplus_bell")
-  .exciterType("impulse")
-  .pitch(800)
-  .decay(2)
-  .damping(0.2)
+        <div class="code-block" data-example="impact">
+          <strudel-editor><!--
+// Singing bowl with shimmer tail
+s("dsonic_impact_softbell")
+  .transType("mallet")
+  .bodyType("sine")
+  .bodyPitch(300)
+  .tailType("reverb-like")
+  .layerMix(0.7)
   ._punchcard()
--->
-          </strudel-editor>
+
+--></strudel-editor>
         </div>
       </div>
     </section>
@@ -1147,8 +1004,7 @@ s("dsonic_karplus_bell")
           </div>
         </div>
         <div class="code-block" data-example="fm">
-          <strudel-editor>
-<!--
+          <strudel-editor><!--
 // Electric FM kick
 s("dsonic_fmperc_fmKick")
   .algorithm(1)
@@ -1156,15 +1012,30 @@ s("dsonic_fmperc_fmKick")
   .modIndexDecay(0.08)
   .brightness(0.6)
   ._punchcard()
--->
-          </strudel-editor>
+
+--></strudel-editor>
         </div>
       </div>
     </section>
 
-    </main>
-  </div>
+  </main>
+</div>
 
-  <!-- Load Strudel REPL and DSonic as ES modules -->
+
+
+<!-- Load Strudel REPL and DSonic as ES modules -->
+
+
+  
+
+  
+    <footer>
+  <p>DSonic &mdash; Web Audio Drum Synthesis for <a href="https://strudel.cc" target="_blank">Strudel</a></p>
+</footer>
+
+  
+
+  
+  
 </body>
 </html>
