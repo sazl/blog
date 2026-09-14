@@ -1,0 +1,11 @@
+{{- with . -}}
+<article class="project-tile" data-project="{{ .id }}" style="--project-accent: {{ .accent }};">
+  <div class="project-tile__meta"><span>INDEX / {{ .category | upper }}</span><span>OPEN ↗</span></div>
+  <div class="project-tile__diagram" style="color: var(--project-accent);">{{ partial "project-diagram.html" . }}</div>
+  <div class="project-tile__body">
+    <h3>{{ .title }}</h3>
+    <p>{{ .description }}</p>
+    <a href="{{ .url }}" target="_blank" rel="noopener noreferrer" aria-label="Open {{ .title }} project in a new tab">OPEN PROJECT ↗</a>
+  </div>
+</article>
+{{- end -}}
