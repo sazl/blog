@@ -1,0 +1,27 @@
+{{- $about := .Site.GetPage "/about/" -}}
+<section class="home-about" id="home-about" aria-labelledby="home-about-title">
+  <div class="home-section-heading">
+    <p class="home-section-heading__eyebrow">03 / INDEX</p>
+    <h2 id="home-about-title">About / index</h2>
+  </div>
+  <div class="home-about__content">
+    {{ with $about }}
+      <div class="home-about__summary">{{ .Summary }}</div>
+      <a class="home-about__about-link" href="{{ .RelPermalink }}">Read more about me <span aria-hidden="true">↗</span></a>
+    {{ end }}
+    <nav class="home-about__discovery" aria-label="Site index">
+      <ul>
+        {{ with .Site.GetPage "/about/" }}
+          <li><a href="{{ .RelPermalink }}">About</a></li>
+        {{ end }}
+        {{ with .Site.GetPage "/tags/" }}
+          <li><a href="{{ .RelPermalink }}">Tags</a></li>
+        {{ end }}
+        <li><a href="{{ "search/" | relLangURL }}">Search</a></li>
+        {{ with .OutputFormats.Get "RSS" }}
+          <li><a href="{{ .RelPermalink }}">RSS</a></li>
+        {{ end }}
+      </ul>
+    </nav>
+  </div>
+</section>

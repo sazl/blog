@@ -1,0 +1,28 @@
+{{- $postsDir := .Site.Params.posts | default (slice "posts" "post") -}}
+{{- $posts := where (where site.RegularPages "Section" "in" $postsDir) "Section" "!=" "" -}}
+{{- $postsSection := .Site.Params.posts | default "posts" -}}
+{{- $recent := (.Paginate $posts).Pages -}}
+<section class="home-writing" id="home-writing" aria-labelledby="home-writing-title">
+  <div class="home-section-heading">
+    <p class="home-section-heading__eyebrow">01 / WRITING</p>
+    <h2 id="home-writing-title">Recent writing</h2>
+  </div>
+  <ol class="home-writing__list">
+    {{ range $recent }}
+      <li class="home-writing__item">
+        <article>
+          <div class="home-writing__meta">
+            <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format ($.Site.Params.dateformShort | default "Jan 2, 2006") }}</time>
+            {{ with .Params.tags }}
+              <span class="home-writing__tags">{{ delimit . ", " }}</span>
+            {{ end }}
+          </div>
+          <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
+        </article>
+      </li>
+    {{ end }}
+  </ol>
+  {{ with .Site.GetPage (printf "/%s/" $postsSection) }}
+    <a class="home-writing__archive" href="{{ .RelPermalink }}">View all writing <span aria-hidden="true">↗</span></a>
+  {{ end }}
+</section>
