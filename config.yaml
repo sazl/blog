@@ -51,6 +51,8 @@ params:
   readTime: true
   shareSocial: true
 
+  customCSS:
+    - "css/blog-redesign.css"
   showPostsLink: true # show or hide the link to the simple post list
   extraContentDirs: [] # other content directories to render similarly to the home page
   showcaseDir: "showcase" # create a content directory that shows a special showcase section in the home page

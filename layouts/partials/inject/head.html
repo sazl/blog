@@ -1,0 +1,6 @@
+{{- range site.Params.customCSS -}}
+  {{- with resources.Get . -}}
+    {{- $stylesheet := . | resources.Minify | resources.Fingerprint "sha256" -}}
+    <link rel="stylesheet" href="{{ $stylesheet.RelPermalink }}" integrity="{{ $stylesheet.Data.Integrity }}">
+  {{- end -}}
+{{- end -}}
