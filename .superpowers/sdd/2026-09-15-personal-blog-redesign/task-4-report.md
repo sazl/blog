@@ -21,3 +21,14 @@ Done.
 ## Concerns
 
 - Final Hugo rendering and browser verification remain for Task 5 because the Hugo binary is unavailable in this environment.
+
+## Review fixes
+
+- Aliased Ficurinia's `--default_*` variables to the redesign palette so preserved theme controls use the dark surfaces, readable text, structural rules, and electric green accent.
+- Added higher-specificity identity navigation resets for theme list-item spacing, separators, anchor padding, and primary/social colors.
+- Prepended the bundled Symbols Nerd Font to the display stack so article metadata and utility glyphs retain their intended icons.
+
+## Fix verification
+
+- Focused CSS token, identity-navigation, and metadata-font contract checks: passed.
+- `git diff --check`: passed.

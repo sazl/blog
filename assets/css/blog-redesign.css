@@ -23,8 +23,20 @@
   --text-body: 1.04rem;
   --text-lg: 1.35rem;
   --text-xl: clamp(2.3rem, 7vw, 5.8rem);
-  --font-display: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: "Symbols Nerd Font", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-body: Inter, "Avenir Next", "Segoe UI", system-ui, sans-serif;
+}
+
+:root {
+  /* Keep Ficurinia controls on the redesigned palette. */
+  --default_bg: var(--canvas);
+  --default_hl_bg: var(--surface);
+  --default_fg: var(--text);
+  --default_dim_fg: var(--muted);
+  --default_stroke: var(--rule);
+  --default_accent: var(--accent);
+  --default_sidebar_bg: var(--surface);
+  --default_sidebar_fg: var(--text);
 }
 
 *,
@@ -227,6 +239,48 @@ html.home #content {
 }
 
 .home-identity__social a {
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+/* Beat Ficurinia's generic nav rules inside the replacement identity block. */
+html.home #home-identity nav:not(#TableOfContents) ul {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+html.home #home-identity nav:not(#TableOfContents) ul li,
+html.home #home-identity nav:not(#TableOfContents) ul li:last-child {
+  margin: 0;
+  border-right: 0;
+}
+
+html.home #home-identity nav:not(#TableOfContents) ul li a {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--rule-strong);
+  background: transparent;
+  box-shadow: none;
+  color: var(--text);
+  font: var(--text-sm) / 1.4 var(--font-display);
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+html.home #home-identity nav:not(#TableOfContents) ul li a:hover {
+  border-bottom-color: var(--accent);
+  color: var(--accent);
+}
+
+html.home #home-identity .home-identity__social a {
   color: var(--muted);
   font-size: var(--text-xs);
 }
