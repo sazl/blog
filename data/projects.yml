@@ -1,0 +1,42 @@
+- id: cutting-room-floor
+  title: Cutting Room Floor
+  category: Field catalog
+  url: https://cutting-room-floor.pages.dev/
+  description: Generative instruments, games, and quiet machines.
+  accent: '#7dffb2'
+  diagram: waveform-grid
+- id: learnllm
+  title: LearnLLM
+  category: Curriculum
+  url: https://learnllm.pages.dev/
+  description: Build a language model from tensors to text.
+  accent: '#ff9a72'
+  diagram: learning-path
+- id: loom
+  title: Loom
+  category: Language
+  url: https://loom-lang.pages.dev/tutorial/
+  description: An array language for data, music, and graphics.
+  accent: '#93bfff'
+  diagram: pipeline
+- id: dsonic
+  title: DSonic
+  category: Audio tool
+  url: https://dsonic.pages.dev/
+  description: A live-coding drum synthesizer with twelve engines.
+  accent: '#d9a4ff'
+  diagram: waveform-stages
+- id: lintuition
+  title: Lintuition
+  category: Visual guide
+  url: https://lintuition.pages.dev/
+  description: A visual guide to linear algebra through intuition.
+  accent: '#7dffb2'
+  diagram: vectors
+- id: wikigraph
+  title: WikiGraph
+  category: Explorer
+  url: https://wikigraph.pages.dev/
+  description: Explore leader succession as an interactive historical graph.
+  accent: '#d5b1ff'
+  diagram: succession-graph
