@@ -1,28 +1,27 @@
 <header class="home-identity" id="home-identity">
-  <div class="home-identity__intro">
-    <a class="home-identity__mark" href="{{ .Site.Home.RelPermalink }}" aria-label="{{ .Site.Title }} home">
-      <span class="home-identity__logo" aria-hidden="true">/</span>
-      <span>{{ .Site.Title }}</span>
-    </a>
-    <p class="home-identity__positioning">Ideas, tools, and things made.</p>
-  </div>
+  <a class="home-identity__mark" href="{{ .Site.Home.RelPermalink }}" aria-label="{{ .Site.Title }} home">
+    <span class="home-identity__logo" aria-hidden="true">/</span>
+    <span>{{ .Site.Title }}</span>
+  </a>
 
-  <nav class="home-identity__navigation" aria-label="Primary navigation">
-    <ul>
-      <li><a href="{{ .Site.Home.RelPermalink }}">Home</a></li>
-      {{ range .Site.Menus.main }}
-        <li><a href="{{ .URL | relLangURL }}">{{ .Name }}</a></li>
-      {{ end }}
-    </ul>
-  </nav>
-
-  {{ with .Site.Menus.icons }}
-    <nav class="home-identity__social" aria-label="Social links">
+  <div class="home-identity__menu">
+    <nav class="home-identity__navigation" aria-label="Primary navigation">
       <ul>
-        {{ range . }}
-          <li><a href="{{ .URL }}" rel="me">{{ .Name }}</a></li>
+        <li><a href="{{ .Site.Home.RelPermalink }}">Home</a></li>
+        {{ range .Site.Menus.main }}
+          <li><a href="{{ .URL | relLangURL }}">{{ .Name }}</a></li>
         {{ end }}
       </ul>
     </nav>
-  {{ end }}
+
+    {{ with .Site.Menus.icons }}
+      <nav class="home-identity__social" aria-label="Social links">
+        <ul>
+          {{ range . }}
+            <li><a href="{{ .URL }}" rel="me">{{ .Name }}</a></li>
+          {{ end }}
+        </ul>
+      </nav>
+    {{ end }}
+  </div>
 </header>
